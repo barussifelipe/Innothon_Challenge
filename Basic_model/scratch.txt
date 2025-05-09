@@ -1,0 +1,73 @@
+Basic model: Classify supply as regular or not based only on consumption data
+
+
+Model outline:
+    1. Model Selection: XGBoost classifier
+    2. Train model with set interval averages and set number of days for each supply:
+        - For example hourly averages over 300 days
+        - Each set interval average will be a feature aswell as Supply_ID
+        - The label will be whether the supply was marked as regular or not from it`s overall history
+
+Data preparation:
+    1. Over 17 million total entries. Select a sample to work with:
+        - Get ride of supply 19, 33 and 82 (have missing values)
+        - Select a sample of the data for the simple model training:
+            Use 300 days of each supply (needs to be at most 438, since we want to include supply1 that was labeled as fraud)
+        - Select interval size to compute averages:
+            Use hourly averages, which yield 24 features per supply
+    2. Combine with labels
+    3. Save final dataframe as csv to be exported to model training
+
+Model training:
+    1. Train and Test split:
+        - Imbalanced data. 87 regular vs 10 non regular. Manually split (60/40)
+        - Use train_test_split on test_size= 0.2 and random_state = 42
+    
+    2. Model creation:
+        - Create XGBoost model : n_estimators=100, learning_rate=0.1, random_state=42
+        - 
+    3. Model evaluation:
+        - Classification report:
+
+                   precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00         4
+           1       0.82      1.00      0.90        18
+
+    accuracy                           0.82        22
+   macro avg       0.41      0.50      0.45        22
+weighted avg       0.67      0.82      0.74        22
+
+        - Confusion Matrix:
+                [[ 0  4]
+                [ 0 18]] 
+
+        - Interpretation: Model performed very well predicting if Supply was regular, and could not predict 
+        a single non regular Supply. This is to be expected as the dataset is small and is highly imbalanced
+        towards regular Supplies.
+        In conclusion, the model is very bad and just predicts regular for every supply. (Explains why acurracy is high)
+
+        4. Run model on other parameters: More days, smaller interval. (model_evaluation.txt)
+            - Dataset size problem will still persist but could have minor improvent
+        
+Improving model
+    1. Handle imbalanced dataset:
+        - Use other classifier
+        - Use scale_pos_weight parameter in XGBoost to give more weight to fraud cases.
+        - Create new features that are more relevant
+        - Under sample/ Over sample
+        - Use SMOTE for creating new fraud cases (be careful)
+    
+    2. Feature engineering
+
+    3. Restructure model:
+        Proposed schema: (Supply_ID, Start_time, End_time, Feature1, Feature2, ... is_Regular)
+        Select time periods (windows) to work with. Create features to essentially represent what was happenning during that window.
+        Features could be: Avg consumtion, max consumption, min consumption, num of works, total duration of works, supply active or not ...
+        Also create features that represent dependancy between a window and the other to better capture sequential patternds
+        Window must be carefully selected based on datasets study.
+
+        Since it is only known if a supply in general was fradulent or not, begin by labeling all time periods of a fradulent supply as fraud and
+            non fraud for non fraud supplies. 
+            After done, implement unsupervized anomaly detection to identify which time periods are anomalies and then label those from fradulent supplies as fraud. 
+        

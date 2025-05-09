@@ -1,0 +1,120 @@
+
+Model was trained on three different datasets:
+
+1. Hourly average over 300 days per customer
+2. Half hour average over 400 days per customer
+3. Quarter hour average over 400 days per customer
+
+
+1. Hourly average over 300 days per customer (Class imbalanced handled with scale_pos_weight):
+    - Classification report:
+
+                  precision    recall  f1-score   support
+
+           0       0.20      0.25      0.22         4
+           1       0.82      0.78      0.80        18
+
+    accuracy                           0.68        22
+   macro avg       0.51      0.51      0.51        22
+weighted avg       0.71      0.68      0.69        22
+
+    - Confusion Matrix:
+        [[ 1  3]
+        [ 4 14]]
+    
+    - AUC Score: 0.60
+
+    - Interpretation: After adding the scale_pos_weight parameter, there is an increase in F1-score for classifying 0 (fraud cases).
+    In conclusion, while the metrics are  still low, the model in comparison to the previous one (in scratch.txt) makes an actual effort in predicting the class 0.
+
+
+
+2. Half hour average over 400 days per customer (scale_pos_weight):
+    - Classification report:
+
+                  precision    recall  f1-score   support
+
+           0       0.20      0.25      0.22         4
+           1       0.82      0.78      0.80        18
+
+    accuracy                           0.68        22
+   macro avg       0.51      0.51      0.51        22
+weighted avg       0.71      0.68      0.69        22
+
+    - AUC score: 0.63
+
+    - Confusion matrix:
+        [[ 1  3]
+        [ 4 14]]
+
+    - Interpretation: Same exact performance as hourly average over 300 days (scale_pos_weight), meaning the issue might not
+    be the amount of data per example.
+    The difference is in the slight increase in AUC score which means it is slighty (barely) better than the previous model.
+    In conclusion, class imbalance must be handled to improve model performance.
+
+
+3. Quarter hour average over 400 days per customer (scale_pos_weight):
+    - Classification report:
+
+                  precision    recall  f1-score   support
+
+           0       0.14      0.25      0.18         4
+           1       0.80      0.67      0.73        18
+
+    accuracy                           0.59        22
+   macro avg       0.47      0.46      0.45        22
+weighted avg       0.68      0.59      0.63        22
+
+    - Confusion matrix:
+        [[ 1  3]
+        [ 6 12]]
+    
+    - AUC score: 0.66
+
+    - Interpretation: Lower performance than any model so far. This model higlights that the model performance is not proportional to the amount of data per supply.
+    This model is actually showing the opposite with lower metrics than models trained with less data per supply.
+    In conclusion, class imbalance is still the main problem and must be handled to improve current model performance.
+
+
+
+
+ROC and AUC metrics. 
+
+Definitions:
+
+Positive = target label
+Negative = Non-target label
+
+TP = true positive (predicted positive and was actually positive)
+FP = false positive (predicted positive and was actually negative)
+TN = true negative (predicted negative and was actually negative)
+FN = false negative (predicted negative and was actually positive)
+
+FPR = False positive rate = FP/(FP + TN) #How many incorrect positives predicted (actually negative) over total negatives in the dataset
+TPR/Recall = True positive rate = TP/(TP + FN) #How many correct positives predicted over the total positives in the dataset
+
+TPR x FPR --> Propotion of correctly classified target labels vs Proportion of incorrectly classified target labels
+
+
+Plot interpretation:
+
+Each instance is a different threshold for classifying as 0 or 1. Different thresholds are used to simulate what the TPR x FPR is.
+So in reality the final model TPR x FPR is a single instance out of all the instances.
+
+So when analysing the plot we are looking for cases where the proportion of correct target label prediction is higher
+    than incorrect predictions. This means a better model will have a ROC curve above the x = y line.
+
+The AUC (Area under the curve) is the area under the ROC curve. The greater the AUC the better the performance. 
+For a ROC curve where TPR = FPR we have an AUC of 0.5. This ROC and AUC represent chance, 
+    so cases where the proportion of correct target predictions and incorrect target predictions are the same. (Uniform probability, throwing a coin and getting heads or tails)
+
+
+Metric Interpretation:
+For AUC = 0.5 the model performs aswell as chance
+For AUC > 0.5 the model shows some ability in accurrately predicting target label
+For AUC = 1 the model is perfect
+
+Conclusion:
+The ROC curve evaluates the model over various thresholds showing different possible TPR x FPR values. This gives a good idea of how well 
+the model performs/could perform in predicting the target label. 
+The AUC is a metric value that summarizes the ROC curve, representing how good it is.

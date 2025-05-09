@@ -1,0 +1,105 @@
+Understanding data provided:
+
+Time-series data over multiple different time frames is provided on 100 Suppplies/clients. (multivariate time-series)
+Given the history of these supplies, whether their overrall behaviour was anomoulous, regular or fraudulous is also provided.
+
+Variables and their time frames:
+
+- Suppy status and available power: A fixed time frame is not present. Each supply has a few years not equally partioned, 
+with available_power and supply status. Terminated status has None value for available power (makes sense) and there is missing data
+(availabel power) in some active status rows.
+
+- Consumption: A fixed time frame is present. Quarter hour measured consumption (for entire day). Number of days not clear yet.
+
+- Works: A fixed time frame also not present. Works happen for each supply over the years, but no fixed time frame is defined
+
+- Interruptions: Interruptions are also not logged with fixed time frame.
+
+- Status Words: No fixed time frame
+
+
+How can these different variables with different time frames can be combined to train an ML?
+
+
+Datasets info:
+
+====== Customer_info =======
+
+
+Dataframe info:
+
+ #   Column           Non-Null Count  Dtype  
+---  ------           --------------  -----  
+ 0   Supply_ID        1934 non-null   object 
+ 1   begin_date_ref   1934 non-null   object 
+ 2   end_date_ref     1934 non-null   object 
+ 3   available_power  1595 non-null   float64
+ 4   supply_status    1934 non-null   object 
+
+
+supply_status balance (value_counts):
+A (Active)        1729
+C (Terminated)     192
+F (Fictitious)      13
+
+
+Missing data:
+147 available_power null values in Active status
+
+
+Logs per supply info:
+
+Maximum number of logs of a supply: 43
+Minimum number of logs of a supply: 9
+Average number of logs of a supply: 19.34
+
+Oldest first log: 1949
+Newest first log: 2016
+Oldest last log year: 9999
+Newest last log year: 9999
+
+
+====== Consumption =======
+
+Overall info:
+RangeIndex: 17705184 entries, 0 to 17705183
+Data columns (total 6 columns):
+ #   Column     Dtype  
+---  ------     -----  
+ 0   Supply_ID  object 
+ 1   meas_ym    int64  
+ 2   meas_dd    int64  
+ 3   id         int64  
+ 4   val        float64
+ 5   magnitude  object 
+dtypes: float64(1), int64(3), object(2)
+memory usage: 810.5+ MB
+
+NaN values in data:
+Supply_ID      0
+meas_ym        0
+meas_dd        0
+id             0
+val          146
+magnitude      0
+dtype: int64
+
+Supply_ID and how many NaN vals (kwh):
+Supply_ID
+SUPPLY019    35
+SUPPLY082    49
+SUPPLY094    62
+dtype: int64
+
+magnitude balance:
+A1    17705184
+Name: count, dtype: int64
+
+Number of days logged per supply (Assumes every day is complete (if not each supply might be off by one day)):
+
+Minimum days logged: 438
+Maximum days logged: 2191
+Average days logged: 1844.29
+Mode of days logged: 1825
+
+A distribution was plotted and shows that most supplies have 1825 days logged
