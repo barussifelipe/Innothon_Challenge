@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 #Load the INTERUPTIONS dataset with specific encoding, separator and decimal format.
-df_interruptions = pd.read_csv("EsempioDataset - INTERRUZIONI.csv", encoding="utf-16", sep="\t", decimal=",")
+df_interruptions = pd.read_csv("Study_datasets\Interruptions\EsempioDataset - INTERRUZIONI.csv", encoding="utf-16", sep="\t", decimal=",")
 
 def Interruptions_Data_Treatment(df_interruptions): 
     #We will follow similar steps as in the Work_Data_Treatment function:
@@ -45,7 +45,7 @@ def Interruptions_Data_Treatment(df_interruptions):
         Max=("durata_netta", "max"),
         Min=("durata_netta", "min"),
         Mean=("durata_netta", lambda x: round(x.mean(), 2)),
-        Std=("durata_netta", lambda x: round(x.std(), 2)),
+        Std=("durata_netta", lambda x: round(x.std(), 2) if len(x) > 1 else 0),
     ).reset_index()
 
     return df_interruptions_agg, mappings
