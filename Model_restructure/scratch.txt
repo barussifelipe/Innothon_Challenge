@@ -34,4 +34,44 @@ Implementing second idea:
     - For each data set group information by supply per year
 
         Consumption: 
-        
+            RangeIndex: 511 entries, 0 to 510
+            Data columns (total 6 columns):
+            #   Column     Non-Null Count  Dtype  
+            ---  ------     --------------  -----  
+            0   Supply_ID  511 non-null    object 
+            1   meas_ym    511 non-null    int64  
+            2   val_mean   511 non-null    float64
+            3   val_max    511 non-null    float64
+            4   val_min    511 non-null    float64
+            5   val_std    511 non-null    float64
+            dtypes: float64(4), int64(1), object(1)
+            memory usage: 24.1+ KB
+            None
+
+            entries per supply: Supply_ID
+            SUPPLY001    2
+            SUPPLY002    5
+            SUPPLY003    5
+            SUPPLY004    5
+            SUPPLY005    5
+                        ..
+            SUPPLY096    5
+            SUPPLY097    6
+            SUPPLY098    6
+            SUPPLY099    5
+            SUPPLY100    5
+            Length: 100, dtype: int64
+
+            max entries: 6
+            min entries: 2
+            mean entries: 5.11
+
+        Customer info:
+            For customer info also group 
+
+            For this dataset I want to do something similar. I still want to group the data by supply and year, but instead of computing some 
+            function on this data I want to have a column indicating if in that year the supply was active, terminated, fictitious or mixed (cases where in that year supply was more than only one of these categories).
+            I want the end schema to look like: (Supply_ID, Year, Available_power, Status) where status indicates A for active, C for terminated, F for fictitious and M for mixed
+
+            For tomorrow: Decide what to do with null values (set everything to 0), so stats on available power can be computed
+            Try both and see how much data is lost
