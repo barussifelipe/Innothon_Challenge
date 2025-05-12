@@ -75,3 +75,94 @@ Implementing second idea:
 
             For tomorrow: Decide what to do with null values (set everything to 0), so stats on available power can be computed
             Try both and see how much data is lost
+            Null values set to 0
+
+        Works: 
+            FELIPE
+
+        Interruptions:
+            FELIPE
+
+        Status_words:
+            FELIPE
+
+    Merging datasets:
+        
+        There are clear gaps between datasets. Objective is to keep as much information as possible
+         which means filling some features with 0s where data is not available
+
+        How periods will work: Periods won`t be synchronized but will represent the ordered history of that supplly.
+        So for example if it is decided 5 periods, for each supply these will be the first 5 years of data logged.
+
+        How to find best number of periods?
+        First find supply with the least number of years. (using consumption as a basis)
+        In consumption there are supplies with only 2 years and max of 6 years and mean is 5 years.
+        Begin by using 6 periods (years) and fill in with 0s supplies that don`t contain enough data.
+
+        Consumption:
+        NaN values per column:
+            Supply_ID     0
+            meas_ym       0
+            val_mean     89
+            val_max      89
+            val_min      89
+            val_std      89
+            dtype: int64
+
+            Non NaN values per column:
+            Supply_ID    600
+            meas_ym      600
+            val_mean     511
+            val_max      511
+            val_min      511
+            val_std      511
+
+
+        Now based on the consumption years, extract the same from other datasets.
+        
+        Customer_info:
+        Based on years extracted by consumption data filter rows of corresponding years and add empty rows in the case year not present.
+        Now check if dataset correctly Processed.
+
+                NaN values per column:
+        Supply_ID                 0
+        Year                      0
+        mean_available_power    106
+        Status                  106
+        Status_encoded          106
+        dtype: int64
+
+        Non NaN values per column:
+        Supply_ID               600
+        Year                    600
+        mean_available_power    494
+        Status                  494
+        Status_encoded          494
+
+    Consumption and Customer_info merge:
+                NaN values per column:
+        Supply_ID                 0
+        Year                      0
+        val_mean                 94
+        val_max                  94
+        val_min                  94
+        val_std                  94
+        mean_available_power    106
+        Status                  106
+        Status_encoded          106
+        dtype: int64
+
+        Non NaN values per column:
+        Supply_ID               600
+        Year                    600
+        val_mean                506
+        val_max                 506
+        val_min                 506
+        val_std                 506
+        mean_available_power    494
+        Status                  494
+        Status_encoded          494
+        dtype: int64
+
+
+    For tommorrow: Process other datasets to make final merge. Then with final merge prepare data to train XGboost model.

@@ -80,11 +80,28 @@ status_mapping = {'A': 0, 'C': 1, 'F': 2, 'M': 3, 'Unknown': -1}
 final_df['Status_encoded'] = final_df['Status'].map(status_mapping)
 print("Status column encoded.")
 
-# Save the final DataFrame to a CSV file
-print(f"Saving the final DataFrame with encoded Status to {output_path}...")
-final_df.to_csv(output_path, index=False)
-print("Final DataFrame saved.")
+# # Save the final DataFrame to a CSV file
+# print(f"Saving the final DataFrame with encoded Status to {output_path}...")
+# final_df.to_csv(output_path, index=False)
+# print("Final DataFrame saved.")
 
 # Print the first few rows of the final DataFrame
 print("Here are the first few rows of the final DataFrame with encoded Status:")
 print(final_df.head(15))
+
+
+#Info on dataset
+
+
+#Dataframe info 
+print(final_df.info())
+
+#Check how many entries per supply
+entries_per_supply = final_df.groupby(['Supply_ID']).size()
+print(f'\nentries per supply: {entries_per_supply}\n')
+
+#Max, min and average number of entries
+print(f'max entries: {max(entries_per_supply)}\n')
+print(f'min entries: {min(entries_per_supply)}\n')
+print(f'mean entries: {entries_per_supply.mean()}\n')
+
