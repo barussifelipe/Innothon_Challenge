@@ -32,7 +32,7 @@ def dataset_info(df):
     #Non nan values per column
     non_nan_per_column = (~df.isna()).sum()
     print(f'\nNon NaN values per column:\n{non_nan_per_column}')
-
+    
 
     return
 

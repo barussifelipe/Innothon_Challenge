@@ -165,4 +165,19 @@ Implementing second idea:
         dtype: int64
 
 
-    For tommorrow: Process other datasets to make final merge. Then with final merge prepare data to train XGboost model.
+    Up next: Process other datasets to make final merge. Then with final merge prepare data to train XGboost model.
+    
+    Skipped into testing created dataset with consumption and customer info on XGboost:
+        - Label the created dataset
+        - Pre-processing:
+            Handle Nans, handle possible imbalance. 
+            Fill NaNs with column mean. Drop rows that contain more than 3 0 values.
+        - Create XGboost classifier
+ ======= FOR LATER ========
+Analyse model and see what improvements can be made:
+    - Check label balance
+    - splitted correctly
+    - Final dataset size 
+    - Hyperparameters
+    - Dont drop Supply_ID
+
