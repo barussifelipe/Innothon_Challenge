@@ -181,3 +181,102 @@ Analyse model and see what improvements can be made:
     - Hyperparameters
     - Dont drop Supply_ID
 
+
+
+
+============== Current status (Phone Notes) ===============
+
+What i tried so far:
+
+Approach 1: Only consumption data
+(Supply_ID, mean_Period1, mean_Period2… Label)
+
+Each period contains the mean of consumed energy over the defined period time frame, over a defined number of years. Example: quarter hour average, half hour average, hourly average over 400 days. A more detailed example (hourly average over 400 days): mean of hour 1 over all days, mean of hour 2 over all days… mean of hour 24 over all days, label.
+
+Result: model performed well predicting regular supplies, but horrible predicting fraud.
+Diagnosis: Due to high label imbalance (too many regular supplies compared to fraud), model predicted only regular supplies resulting in good accuracy overall but horrible recall. No use of data other than consumption
+Notes: Not clear how notion of time is present (sequential?). Each period is present in a different feature instead of having a single period feature and its corresponding features.
+Hourly mean over many days likely smooths out fraud behavior. 
+
+
+Approach 2: Consumption data and available power data used
+(Supply_ID, Period, Feature1… Label)
+
+Every supply has 6 periods in which each represents a year of their history. Numbered 1-6 in ascending corresponding year order.
+Every feature corresponded to that supply period. Example: Max consumption, Number of works, available power, etc…
+The label for each supply corresponded to if that supply in general was fraud or not. Example: Supply_81 was fraudulent, so every period for Supply_81 was fraudulent as well.
+
+Result: Model performed well predicting regular supply periods but did horribly predicting fraudulent periods.
+Diagnosis: High label imbalance resulted in the model predicting regular for every period. Even with the addition of features, horrible performance.
+Notes: In order to combine available data into the given period, information was lost and gaps (NaN) were present. Also, one year period summarized data likely smooths out fraudulent behavior, making it difficult for model to identify fraudulent periods. Finally, assuming every period of a fraudulent supply is fraudulent is not necessarily correct since a supply might have committed a fraud for only a given time frame of its history.
+
+
+New approach: Sliding window
+
+(Supply_ID, Feature1, Feature2…, Label)
+
+Define features that for each supply id work as a sliding window. In more detail, define important points in time from the most current day (or not), that these features will represent. Example: 7 days ago, 14 days ago, 30 day ago, 90 days ago and so on. And for each of these time steps have features like max consumption, mean consumption, variance, and so on. The decision on these features will be very important.
+In this matter, by using more granular time steps, possible fraudulent patterns are less likely to be smoothed out and, by using the sliding window, we are preserving the aspect of time-series (sequential events) (study to understand further).
+
+
+Which features to include per time step:
+	⁃	variance/std consumption: This will capture any deviations from a “normal” behavior of the time step
+	⁃	max consumption:
+	⁃	min consumption:
+
+Given the study done on the consumption data set, possible time steps to include as many supplies as possible are:
+	⁃	every 7 days
+	⁃	every 14 days 
+	⁃	every 30 days
+	⁃	7/14/30/90/120/150/180…
+	⁃	Think of some kind of analysis other than just trying out time steps that will reveal the best split 
+
+After this is done, combining this approach with an unsupervised anomaly detection model could reveal what time step was anamolous and there for possibly fraudulus.
+Though new and unlabeled data does not exist, this combination might be useful for reaching the final goal.
+
+
+===========================
+
+======= Implement sliding window ===========
+
+Schema: (Supply_ID, Feature1, Feature2...  label)
+
+Features:
+    Period split: Use 400 days. X by X days. For each X define the following feaures: max, min, mean, std.
+
+Labels:
+    Use Label dataset provided
+
+Data:
+    - 97 supplies. Fraud: 10. Regular: 87
+    - 40 features. mean, max, min and sd for every 10 days per supply
+
+Model: model = XGBClassifier(
+        objective='binary:logistic',  # For binary classification
+        max_depth=6,                  # Maximum depth of trees
+        learning_rate=0.1,            # Learning rate (eta)
+        n_estimators=100,             # Number of boosting rounds
+        random_state=42,               # Random seed for reproducibility
+        scale_pos_weight = scale_pos_weight # For imbalanced dataset
+    )
+
+Training:
+    - Split: X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    - Train: 77 supplies, 8 fraud, 69 regular
+    - Test: 20 supplies, 2 fraud, 18 regular
+
+Performance:
+    - Classification Report:
+                precision    recall  f1-score   support
+
+            0       1.00      0.94      0.97        18
+            1       0.67      1.00      0.80         2
+
+        accuracy                           0.95        20
+    macro avg       0.83      0.97      0.89        20
+    weighted avg       0.97      0.95      0.95        20
+
+    - Confusion Matrix:
+            [[17  1]
+            [ 0  2]]
+
