@@ -1,0 +1,3 @@
+[submodule "Anomaly-Transformer"]
+	path = Anomaly-Transformer
+	url = https://github.com/thuml/Anomaly-Transformer.git
