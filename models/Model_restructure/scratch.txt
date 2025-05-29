@@ -280,3 +280,17 @@ Performance:
             [[17  1]
             [ 0  2]]
 
+====================
+
+======== Unsupervized Learning =========
+
+Idea: divide the dataset into periods. Each period will contain many features which will be analysed to classify each period as anomaly or not
+
+Features: ['Unnamed: 0', 'Supply_ID', 'Period_Start_Date', 'Period_End_Date',
+       'Period_Index', 'Mean_Consumption_Period', 'Max_Consumption_Period',
+       'Min_Consumption_Period', 'Std_Consumption_Period',
+       'Median_Consumption_Period', 'IQR_Consumption_Period',
+       'Num_Zero_Readings_Period', 'Daily_Avg_Change_Period',
+       'Daily_Std_Change_Period', 'Max_Daily_Consumption',
+       'Min_Daily_Consumption', 'Trend_Period',
+       'Period_Total_Consumption_Ratio_to_Supply_Total']

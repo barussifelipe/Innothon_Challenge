@@ -1,0 +1,195 @@
+UNSUPERVIZED ANOMALY DETECTION (ONE CLASS SVM)
+
+RAW DATASET INFO:
+    - Schema: ['Supply_ID', 'Period_Start_Date', 'Period_End_Date', 'Period_Index',
+        'Mean_Consumption_Period', 'Max_Consumption_Period', 'Min_Consumption_Period',
+        'Std_Consumption_Period', 'Median_Consumption_Period', 'IQR_Consumption_Period',
+        'Num_Zero_Readings_Period', 'Daily_Avg_Change_Period', 'Daily_Std_Change_Period',
+        'Max_Daily_Consumption', 'Min_Daily_Consumption', 'Trend_Period',
+        'Period_Total_Consumption_Ratio_to_Supply_Total']
+
+    - Features: ['Mean_Consumption_Period', 'Max_Consumption_Period', 'Min_Consumption_Period',
+        'Std_Consumption_Period', 'Median_Consumption_Period', 'IQR_Consumption_Period',
+        'Num_Zero_Readings_Period', 'Daily_Avg_Change_Period', 'Daily_Std_Change_Period',
+        'Max_Daily_Consumption', 'Min_Daily_Consumption', 'Trend_Period',
+        'Period_Total_Consumption_Ratio_to_Supply_Total']
+
+    - Content: 96 of 100 Supplies. Supplies excluded['SUPPLY018', 'SUPPLY019', 'SUPPLY082', 'SUPPLY094']
+        Period length: 10 days
+        Total periods: 3840
+        Periods per supply: 40 (400 total days) (last 400 days of each supply)
+
+    - Structure: For each Supply_ID, Period_Start_Date and Period_End_Date, indicate the beggining and end of the current period. Each period contains the above listed features.
+
+PRE-PROCESSED DATASET ADDITIONAL INFO:
+    - Schema: Same + ['Is_Non_Regular'] (Regular = 0, Fraud or Anomaly = 1)
+
+    - Features used: Same
+
+    - Content: Same suppplies as in Raw. 
+        Total periods from 'Is_Non_Regular' = 1 supplies: 400
+        Total periods from 'Is_Non_Regular' = 0 supplies: 3440
+
+
+MODEL SELECTION:
+
+APPROACH 1:
+
+    One Class SVM Model
+    Hyperparameter tuning:
+        --- Hyperparameter Evaluation Results ---
+            nu  gamma  total_anomalies_flagged  overall_anomaly_rate_%  recall_non_regular_supplies  false_alarm_rate
+        16  0.100  scale                      717               18.671875                       0.1750          0.188081
+        17  0.100    0.1                      721               18.776042                       0.1725          0.189535
+        18  0.100   0.01                      279                7.265625                       0.1600          0.062500
+        19  0.100  0.001                      222                5.781250                       0.1450          0.047674
+        14  0.050   0.01                      500               13.020833                       0.1275          0.130523
+        15  0.050  0.001                      128                3.333333                       0.1225          0.022965
+        13  0.050    0.1                      189                4.921875                       0.1050          0.042733
+        12  0.050  scale                      537               13.984375                       0.1050          0.143895
+        11  0.020  0.001                      409               10.651042                       0.0575          0.112209
+        10  0.020   0.01                      415               10.807292                       0.0525          0.114535
+        1   0.005    0.1                       84                2.187500                       0.0475          0.018895
+        8   0.020  scale                      431               11.223958                       0.0425          0.120349
+        4   0.010  scale                       63                1.640625                       0.0425          0.013372
+        9   0.020    0.1                       88                2.291667                       0.0400          0.020930
+        5   0.010    0.1                      427               11.119792                       0.0375          0.119767
+        0   0.005  scale                       72                1.875000                       0.0275          0.017733
+        6   0.010   0.01                      384               10.000000                       0.0275          0.108430
+        7   0.010  0.001                       32                0.833333                       0.0250          0.006395
+        3   0.005  0.001                      368                9.583333                       0.0200          0.104651
+        2   0.005   0.01                      368                9.583333                       0.0100          0.105814
+
+        Best parameters found (based on Recall - False Alarm Rate): {'nu': 0.05, 'gamma': 0.001}
+        2025-05-24 18:51:01.633 python[41652:5713397] +[IMKClient subclass]: chose IMKClient_Modern
+        2025-05-24 18:51:01.633 python[41652:5713397] +[IMKInputSession subclass]: chose IMKInputSession_Modern
+
+MODEL TRAINING:
+    --- Training Final OCSVM Model with nu=0.05, gamma=0.001 ---
+
+
+RESULTS:
+
+    - Evaluation metrics:
+        1. Recall for Non-Regular Supplies: Number of individual periods flagged as anomalous by OCSVM that were also part of an Is_Non_Regular=1 supply
+        Why it was limiting: This metric assumed that every period within a non-regular supply should ideally be anomalous. However, a fraudulent supply might have normal consumption for many periods and only one or a few truly anomalous periods. So, a low recall here doesn`t necessarily mean the model was failing to identify the supply as problematic; it just meant it wasn't flagging every single period within it.
+        2. False Alarm Rate: Number of individual periods flagged as anomalous by OCSVM that were also part of an Is_Non_Regular=0 supply
+        3. Overall Anomaly Rate: A direct reflection of the nu parameter, indicating the overall percentage of data points the OCSVM identified as outliers. 
+
+        Limitations: This evaluation method works with the idea that an overall fraud supply had all its periods anomalous, when in reality all a supply needs to be flagged as fraud is a single fraud period.
+        An example of how these metrics can be misleading for the overrall goal is in the recall_non_regular_supplies, where it measures number of periods that were anomolous relative to the number of periods that 'should' be anomolous (from fraud supplies).
+
+
+    --- Final Merged DataFrame Head with OCSVM Results ---
+    Supply_ID Period_Start_Date Period_End_Date  Mean_Consumption_Period  Is_Non_Regular  anomaly_prediction_ocsvm  anomaly_score_ocsvm
+    0  SUPPLY001        2022-10-20      2022-10-30                 0.331898               1                        -1            -2.078102
+    1  SUPPLY001        2022-10-30      2022-11-09                 0.332694               1                        -1            -7.124920
+    2  SUPPLY001        2022-11-09      2022-11-19                 0.350654               1                        -1            -7.387964
+    3  SUPPLY001        2022-11-19      2022-11-29                 0.340226               1                        -1            -7.306946
+    4  SUPPLY001        2022-11-29      2022-12-09                 0.341674               1                        -1            -8.390428
+
+    --- Counts of OCSVM Anomaly Predictions ---
+    anomaly_prediction_ocsvm
+    1    3712
+    -1     128
+    Name: count, dtype: int64
+
+    --- Cross-Checking OCSVM Anomalies with Labeled Data ---
+    Number of OCSVM Anomalies from 'Non-Regular' supplies: 49
+    Number of OCSVM Anomalies from 'Regular' supplies: 79
+    Number of 'Non-Regular' periods missed by OCSVM: 351
+
+    --- Top 10 OCSVM Anomalies (lowest scores) ---
+        Supply_ID Period_Start_Date  Mean_Consumption_Period  Is_Non_Regular  anomaly_score_ocsvm
+    1452  SUPPLY039        2019-05-01                 0.039526               0           -55.974603
+    21    SUPPLY001        2023-05-18                 0.211244               1           -42.013058
+    1821  SUPPLY048        2019-07-30                 0.335425               0           -39.170077
+    1453  SUPPLY039        2019-05-11                 0.031623               0           -36.699775
+    1302  SUPPLY035        2019-08-09                 0.076781               0           -36.237544
+    1823  SUPPLY048        2019-08-19                 0.248130               0           -22.567660
+    1622  SUPPLY043        2019-08-09                 0.149556               0           -21.664410
+    1818  SUPPLY048        2019-06-30                 0.496613               0           -21.126043
+    23    SUPPLY001        2023-06-07                 0.320444               1           -19.111981
+    26    SUPPLY001        2023-07-07                 0.421051               1           -19.037314
+
+    --- Top 10 OCSVM Anomalies from 'Non-Regular' Supplies ---
+        Supply_ID Period_Start_Date  Mean_Consumption_Period  Is_Non_Regular  anomaly_score_ocsvm
+    21   SUPPLY001        2023-05-18                 0.211244               1           -42.013058
+    23   SUPPLY001        2023-06-07                 0.320444               1           -19.111981
+    26   SUPPLY001        2023-07-07                 0.421051               1           -19.037314
+    27   SUPPLY001        2023-07-17                 0.429184               1           -18.596892
+    28   SUPPLY001        2023-07-27                 0.428687               1           -18.584303
+    25   SUPPLY001        2023-06-27                 0.429175               1           -18.573812
+    30   SUPPLY001        2023-08-16                 0.429194               1           -18.573274
+    31   SUPPLY001        2023-08-26                 0.421074               1           -18.406416
+    29   SUPPLY001        2023-08-06                 0.413944               1           -16.949131
+    106  SUPPLY003        2019-09-18                 0.251872               1           -13.312655
+
+    --- Top 10 OCSVM Anomalies from 'Regular' Supplies (potential false alarms) ---
+        Supply_ID Period_Start_Date  Mean_Consumption_Period  Is_Non_Regular  anomaly_score_ocsvm
+    1452  SUPPLY039        2019-05-01                 0.039526               0           -55.974603
+    1821  SUPPLY048        2019-07-30                 0.335425               0           -39.170077
+    1453  SUPPLY039        2019-05-11                 0.031623               0           -36.699775
+    1302  SUPPLY035        2019-08-09                 0.076781               0           -36.237544
+    1823  SUPPLY048        2019-08-19                 0.248130               0           -22.567660
+    1622  SUPPLY043        2019-08-09                 0.149556               0           -21.664410
+    1818  SUPPLY048        2019-06-30                 0.496613               0           -21.126043
+    1817  SUPPLY048        2019-06-20                 0.538472               0           -18.476141
+    1303  SUPPLY035        2019-08-19                 0.056675               0           -17.599233
+    1502  SUPPLY040        2019-08-09                 0.064530               0           -16.251691
+
+
+
+APPROACH 2:
+
+    OVERVIEW:
+    The idea now (more relevant to the project) is that in order for a supply to be flagged as fraud, at least one of its periods must have been fraud/anomaly. 
+        So, in contrast to the previous model, this one will not be 'penalized' for not identifying a non-regular supply as anomalous.
+    The objective is to correctly identify at least one anomalous period per non-Regular supply and if identified in regular supplies, these can be flagged as new possible fraud.
+
+    MODEL SELECTION:
+
+
+
+        Hyperparameter score for tuning = a * (Supply Recall) -  b * (Supply False Positive Rate). a + b = 1
+            - a = 1, b = 1: Balanced
+                
+                Best params = {'nu': 0.01, 'gamma': 0.001}
+                Supply Recall = 0.2
+                Supply False Positive Rate = 0.081
+               
+                --- Counts of OCSVM Anomaly Predictions (Period-Level) ---
+                anomaly_prediction_ocsvm
+                1    3808
+                -1      32
+                Name: count, dtype: int64
+
+                --- Detailed Supply-Level Cross-Checking ---
+                Number of 'Non-Regular' Supplies correctly identified by OCSVM (TP): 2
+                Number of 'Regular' Supplies incorrectly flagged by OCSVM (FP - potential new anomalies): 7
+                Number of 'Non-Regular' Supplies missed by OCSVM (FN): 8
+                Number of 'Regular' Supplies correctly not flagged by OCSVM (TN): 79                
+            
+            
+            - a = 0.7, b = 0.3: Prioritize identifying known fraud supplies and allow for more false positives (anomalies in non-fraud supplies)
+                Best params = {'nu': 0.1, 'gamma': 0.001}
+                Supply Recall = 0.5
+                Supply False Positive Rate = 0.406977
+
+            --- Counts of OCSVM Anomaly Predictions (Period-Level) ---
+            anomaly_prediction_ocsvm
+            1    3618
+            -1     222
+            Name: count, dtype: int64
+
+            --- Detailed Supply-Level Cross-Checking for Best Model ---
+            Number of 'Non-Regular' Supplies correctly identified by OCSVM (TP): 5
+            Number of 'Regular' Supplies incorrectly flagged by OCSVM (FP - potential new anomalies): 35
+            Number of 'Non-Regular' Supplies missed by OCSVM (FN): 5
+            Number of 'Regular' Supplies correctly not flagged by OCSVM (TN): 51                
+
+    EVALUATION METRICS:
+
+        Supply Recall:  Out of all the supplies that are actually non-regular (fraudulent), what proportion did the OCSVM correctly flag as having at least one anomaly
+        Supply False Positive Rate: Out of all the supplies that are actually regular, what proportion did the OCSVM incorrectly flag as having an anomaly
+        Supply Precision: Out of all the supplies that the OCSVM flagged as having an anomaly, what proportion were actually non-regular
