@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: anomaly_transformer
+Version: 0.1
+Requires-Dist: numpy>=1.21.0
+Requires-Dist: torch>=1.9.0
+Requires-Dist: scikit-learn>=0.24.0
+Requires-Dist: pandas>=1.2.0
+Requires-Dist: matplotlib>=3.3.0
+Requires-Dist: tqdm>=4.60.0
+Dynamic: requires-dist
