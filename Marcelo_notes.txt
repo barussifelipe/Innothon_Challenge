@@ -1,0 +1,34 @@
+
+study data 
+better scaler.
+reconstruct dataset. (idea: use each data points deviation from register mean of that Supply_ID)
+For each supply compute averages of each of the 96 time frames over x days. Then with these averages compute the deviations of each data point of their corresponding supply and time frame average.
+
+
+
+
+Supply_ID mean1, mean2... mean96
+00, 
+01
+.
+.
+.
+100
+
+
+Supply_ID, time-frame, deviation
+01, 0, x1
+01, 1, x2
+.
+.
+.
+01, 96, x96
+02, 0, y1
+.
+.
+.
+03, 0, w1
+.
+.
+.
+99, 96, n96
