@@ -205,17 +205,18 @@ class EnergySegLoader(object):
         self.step = step
         self.win_size = win_size
         self.scaler = StandardScaler()
-        data = pd.read_csv(data_path + '/Basic_model/Data/Basic_model_dataset_quarterhouravg_400days.csv')
-        data_train, data_test = train_test_split(data.drop(columns = ["Supply_ID", "is_Regular"]), test_size=0.2, random_state=42)
+        data = pd.read_csv(data_path + '/models/Basic_model/Data/Basic_model_dataset_quarterhouravg_400days.csv')
+        features = data.drop(columns=["Supply_ID", "is_Regular"])
+        labels = data["is_Regular"]
+        data_train, data_test, label_train, label_test = train_test_split(features, labels, test_size=0.2, random_state=42)
         self.scaler.fit(data_train)
         self.train = self.scaler.transform(data_train)
-        self.test = self.scaler.transform(data_test)
         data_len = len(self.train)
+        self.test = self.scaler.transform(data_test)
         self.val = self.train[(int)(data_len * 0.8):]
-        self.test_labels = data["is_Regular"]
+        self.test_labels = label_test
 
     def __len__(self):
-
         if self.mode == "train":
             return (self.train.shape[0] - self.win_size) // self.step + 1
         elif (self.mode == 'val'):
@@ -240,7 +241,7 @@ class EnergySegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
 
 
-def get_loader_segment(data_path, batch_size, win_size=100, step=100, mode='train', dataset='KDD'):
+def get_loader_segment(data_path, batch_size, win_size=10, step=100, mode='train', dataset='Consumption'):
     if (dataset == 'SMD'):
         dataset = SMDSegLoader(data_path, win_size, step, mode)
     elif (dataset == 'MSL'):
@@ -249,6 +250,8 @@ def get_loader_segment(data_path, batch_size, win_size=100, step=100, mode='trai
         dataset = SMAPSegLoader(data_path, win_size, 1, mode)
     elif (dataset == 'PSM'):
         dataset = PSMSegLoader(data_path, win_size, 1, mode)
+    elif (dataset == 'Consumption'):
+        dataset = EnergySegLoader(data_path, win_size, 1, mode)
 
     shuffle = False
     if mode == 'train':

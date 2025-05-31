@@ -23,19 +23,20 @@ def main(config):
         solver.test()
 
     return solver
-def Config(self):
+
+class Config():
     def __init__(self, lr: float = 1e-4,
            num_epochs: int = 10,
            k: int = 3,
-           win_size: int = 100,
-           input_c: int = 38,
-           output_c: int = 38,
-           batch_size: int = 1024,
-           pretrained_model: str = None,
+           win_size: int = 10,
+           input_c: int = 95,
+           output_c: int = 95,
+           batch_size: int = 1024,  
+           pretrained_model: str = 20,
            dataset: str = 'Consumption',
-           mode: str = 'train',
-           data_path: str = r'C:\Users\Vanessa Castanho\Documents\Programming\Innothon - Challenge 2\Anomaly Implementation',
-           model_save_path: str = 'checkpoints',
+           mode: str = 'test',
+           data_path: str = r'C:\Users\Vanessa Castanho\Documents\Programming\Innothon - Challenge 2',
+           model_save_path: str = 'Setup_Anomaly/src/Anomaly_Transformer/checkpoints',
            anormly_ratio: float = 4.00):
         
         self.lr = lr
@@ -72,9 +73,9 @@ if __name__ == '__main__':
 
     # config = parser.parse_args()
 
-    args = vars(Config)
+    args = vars(Config())
     print('------------ Options -------------')
     for k, v in sorted(args.items()):
         print('%s: %s' % (str(k), str(v)))
     print('-------------- End ----------------')
-    main(Config)
+    main(Config())
