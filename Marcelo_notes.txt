@@ -32,3 +32,8 @@ Supply_ID, time-frame, deviation
 .
 .
 99, 96, n96
+
+
+
+Further granulate data try 5 and 2 day periods
+Make plots to vizualize anomalies: regular vs anomaly mean for each period

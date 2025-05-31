@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 
 df_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Provided_data/Consumption.csv'
+labels_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Provided_data/Labels.csv'
+
 
 # --- Start by loading your actual raw data ---
 # Replace 'your_raw_data.csv' with the actual path to your file
@@ -207,24 +209,50 @@ def create_period_features_for_anomaly_detection(df, period_length_days=10, desi
 # This will process the first 400 days of data for each supply and divide them into 10-day periods.
 period_features_df = create_period_features_for_anomaly_detection(
     df_raw,
-    period_length_days=10,
+    period_length_days=5,
     desired_total_days=400
 )
 
+try:
+    fraud_supply_labels_df = pd.read_csv(labels_path, encoding='utf-16', sep='\t', decimal=',')
+
+except FileNotFoundError:
+    print(f"Error: '{labels_path}' not found. Please provide the correct path to your labels file.")
+    exit()
+
+# Ensure Supply_ID in labels is consistent (uppercase, stripped spaces)
+fraud_supply_labels_df['Supply_ID'] = fraud_supply_labels_df['Supply_ID'].astype(str).str.strip().str.upper()
+
+# Create 'Is_Non_Regular' combined label
+# 1 for 'Anomalous' or 'Fraud', 0 for 'Regular'
+fraud_supply_labels_df['Is_Non_Regular'] = fraud_supply_labels_df['CLUSTER'].apply(
+    lambda x: 1 if x in ['Anomalia', 'Frode'] else 0
+)
+
+print("Labeled Data Head (with Is_Non_Regular):")
+print(fraud_supply_labels_df.head())
+print(f"Counts of 'CLUSTER':\n{fraud_supply_labels_df['CLUSTER'].value_counts()}")
+print(f"Counts of 'Is_Non_Regular':\n{fraud_supply_labels_df['Is_Non_Regular'].value_counts()}")
+
+
+# Merge period features with the new 'Is_Non_Regular' label
+merged_df = pd.merge(period_features_df, fraud_supply_labels_df[['Supply_ID', 'Is_Non_Regular']], on='Supply_ID', how='left')
+
+
 print("\n--- Period-Level Feature Dataset Head ---")
-print(period_features_df.head())
+print(merged_df.head())
 print("\n--- Period-Level Feature Dataset Info ---")
-period_features_df.info()
-print(f"\nTotal periods generated: {len(period_features_df)}")
-print(f"Number of unique supplies in the final dataset: {period_features_df['Supply_ID'].nunique()}")
+merged_df.info()
+print(f"\nTotal periods generated: {len(merged_df)}")
+print(f"Number of unique supplies in the final dataset: {merged_df['Supply_ID'].nunique()}")
 
 # Optional: Check number of periods per supply
-if not period_features_df.empty:
+if not merged_df.empty:
     print("\n--- Periods generated per supply (top 5 by count) ---")
-    print(period_features_df['Supply_ID'].value_counts().head())
+    print(merged_df['Supply_ID'].value_counts().head())
     print("\n--- Periods generated per supply (bottom 5 by count) ---")
-    print(period_features_df['Supply_ID'].value_counts().tail())
+    print(merged_df['Supply_ID'].value_counts().tail())
 
 #Save new dataset
-# period_features_df.to_csv('/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/unsupervized_dataset.csv')
-# print('\nSaved dataset')
+merged_df.to_csv('/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/dataset_5day.csv')
+print('\nSaved dataset')

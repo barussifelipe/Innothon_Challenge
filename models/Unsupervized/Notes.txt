@@ -193,3 +193,201 @@ APPROACH 2:
         Supply Recall:  Out of all the supplies that are actually non-regular (fraudulent), what proportion did the OCSVM correctly flag as having at least one anomaly
         Supply False Positive Rate: Out of all the supplies that are actually regular, what proportion did the OCSVM incorrectly flag as having an anomaly
         Supply Precision: Out of all the supplies that the OCSVM flagged as having an anomaly, what proportion were actually non-regular
+
+
+
+
+
+Approach 3: New dataset 5 or 3 day periods
+
+
+
+Feature importance
+
+    Removed: None
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 1
+    False Positives (Supplies): 8
+    False Negatives (Supplies): 1
+    True Negatives (Supplies): 10
+    Supply Recall (Non-Regular): 0.5000
+    Supply False Positive Rate: 0.4444
+    Final Weighted Score (Test Set): 0.5278
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Daily_Avg_Change_Period: 0.1111
+    Trend_Period: 0.1111
+    Num_Zero_Readings_Period: 0.0556
+    Min_Daily_Consumption: 0.0556
+    Min_Consumption_Period: 0.0278
+    Median_Consumption_Period: 0.0278
+    Max_Daily_Consumption: 0.0278
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0278
+    Mean_Consumption_Period: 0.0000
+    Max_Consumption_Period: 0.0000
+    Std_Consumption_Period: 0.0000
+    IQR_Consumption_Period: 0.0000
+    Daily_Std_Change_Period: 0.0000
+
+
+    Removed: Daily_Std_Change_Period
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 1
+    False Positives (Supplies): 8
+    False Negatives (Supplies): 1
+    True Negatives (Supplies): 10
+    Supply Recall (Non-Regular): 0.5000
+    Supply False Positive Rate: 0.4444
+    Final Weighted Score (Test Set): 0.5278
+
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Daily_Avg_Change_Period: 0.0833
+    Min_Daily_Consumption: 0.0833
+    Median_Consumption_Period: 0.0556
+    Num_Zero_Readings_Period: 0.0556
+    Trend_Period: 0.0556
+    Min_Consumption_Period: 0.0278
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0278
+    Max_Consumption_Period: 0.0000
+    Std_Consumption_Period: 0.0000
+    Mean_Consumption_Period: -0.0278
+    IQR_Consumption_Period: -0.0278
+    Max_Daily_Consumption: -0.0278
+
+
+    Removed: Daily_Std_Change_Period, IQR_Consumption_Period
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    True Positives (Supplies): 1
+    False Positives (Supplies): 8
+    False Negatives (Supplies): 1
+    True Negatives (Supplies): 10
+    Supply Recall (Non-Regular): 0.5000
+    Supply False Positive Rate: 0.4444
+    Final Weighted Score (Test Set): 0.5278
+
+
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Daily_Avg_Change_Period: 0.0833
+    Min_Daily_Consumption: 0.0833
+    Trend_Period: 0.0833
+    Num_Zero_Readings_Period: 0.0556
+    Min_Consumption_Period: 0.0278
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0278
+    Std_Consumption_Period: 0.0000
+    Median_Consumption_Period: 0.0000
+    Mean_Consumption_Period: -0.0278
+    Max_Consumption_Period: -0.0278
+    Max_Daily_Consumption: -0.0278
+
+
+    Removed: Daily_Std_Change_Period, IQR_Consumption_Period, Max_Consumption_Period
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 1
+    False Positives (Supplies): 7
+    False Negatives (Supplies): 1
+    True Negatives (Supplies): 11
+    Supply Recall (Non-Regular): 0.5000
+    Supply False Positive Rate: 0.3889
+    Final Weighted Score (Test Set): 0.5556
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Num_Zero_Readings_Period: 0.0833
+    Min_Consumption_Period: 0.0556
+    Min_Daily_Consumption: 0.0556
+    Median_Consumption_Period: 0.0278
+    Daily_Avg_Change_Period: 0.0278
+    Trend_Period: 0.0278
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0278
+    Std_Consumption_Period: 0.0000
+    Mean_Consumption_Period: -0.0278
+    Max_Daily_Consumption: -0.0278
+    
+
+
+    Removed: Daily_Std_Change_Period, IQR_Consumption_Period, Max_Consumption_Period, Mean_Consumption_Period
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 2
+    False Positives (Supplies): 15
+    False Negatives (Supplies): 0
+    True Negatives (Supplies): 3
+    Supply Recall (Non-Regular): 1.0000
+    Supply False Positive Rate: 0.8333
+    Final Weighted Score (Test Set): 0.5833
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Min_Consumption_Period: 0.0833
+    Std_Consumption_Period: 0.0833
+    Median_Consumption_Period: 0.0833
+    Num_Zero_Readings_Period: 0.0833
+    Daily_Avg_Change_Period: 0.0833
+    Max_Daily_Consumption: 0.0833
+    Min_Daily_Consumption: 0.0833
+    Trend_Period: 0.0833
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0833
+
+
+
+    Removed: Daily_Std_Change_Period, IQR_Consumption_Period, Max_Consumption_Period, Std_Consumption_Period
+    Recall weight: 0.5
+    FPR weight: 0.5
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 1
+    False Positives (Supplies): 4
+    False Negatives (Supplies): 1
+    True Negatives (Supplies): 14
+    Supply Recall (Non-Regular): 0.5000
+    Supply False Positive Rate: 0.2222
+    Final Weighted Score (Test Set): 0.6389
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Min_Consumption_Period: 0.3889
+    Mean_Consumption_Period: 0.1389
+    Median_Consumption_Period: 0.1389
+    Daily_Avg_Change_Period: 0.1389
+    Max_Daily_Consumption: 0.1389
+    Min_Daily_Consumption: 0.1389
+    Trend_Period: 0.1389
+    Num_Zero_Readings_Period: 0.1111
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.1111
+
+    Removed: Daily_Std_Change_Period, IQR_Consumption_Period, Max_Consumption_Period, Std_Consumption_Period
+    Recall weight: 0.55
+    FPR weight: 0.45
+
+    --- Final OCSVM Performance on UNSEEN TEST SET (Supply-Level) ---
+    True Positives (Supplies): 2
+    False Positives (Supplies): 17
+    False Negatives (Supplies): 0
+    True Negatives (Supplies): 1
+    Supply Recall (Non-Regular): 1.0000
+    Supply False Positive Rate: 0.9444
+    Final Weighted Score (Test Set): 0.5750
+
+
+    --- Feature Importance Results (Permutation Importance on Test Set) ---
+    Mean_Consumption_Period: 0.0250
+    Min_Consumption_Period: 0.0250
+    Median_Consumption_Period: 0.0250
+    Num_Zero_Readings_Period: 0.0250
+    Daily_Avg_Change_Period: 0.0250
+    Max_Daily_Consumption: 0.0250
+    Min_Daily_Consumption: 0.0250
+    Trend_Period: 0.0250
+    Period_Total_Consumption_Ratio_to_Supply_Total: 0.0250
