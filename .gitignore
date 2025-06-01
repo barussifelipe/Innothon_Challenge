@@ -5,3 +5,16 @@ Provided_data/Interruptions.csv
 Provided_data/Labels.csv
 Provided_data/Status_words.csv
 Provided_data/Works.csv
+models/Unsupervized/Data/Approach2_OCSVM.csv
+models/Unsupervized/Data/dataset_5day.csv
+models/Unsupervized/Data/Kfold/results_5day_OCSVM.csv
+models/Unsupervized/Data/Kfold/test_df_results.csv
+models/Unsupervized/Plots/Kfold/feature_distribution_Daily_Avg_Change_Period.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Max_Daily_Consumption.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Mean_Consumption_Period.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Median_Consumption_Period.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Min_Consumption_Period.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Min_Daily_Consumption.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Num_Zero_Readings_Period.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Period_Total_Consumption_Ratio_to_Supply_Total.png
+models/Unsupervized/Plots/Kfold/feature_distribution_Trend_Period.png
