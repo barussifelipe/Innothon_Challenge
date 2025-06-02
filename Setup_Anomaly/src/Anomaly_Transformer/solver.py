@@ -328,6 +328,13 @@ class Solver(object):
         test_energy = np.array(attens_energy)
         test_labels = np.array(test_labels)
 
+
+        num_anomalies = sum((test_energy > thresh))
+
+        print(f'Number of anomalous days identified: {num_anomalies}')
+
+        #print(test_energy)
+
         pred = (test_energy > thresh).astype(int)
 
         gt = test_labels.astype(int)
@@ -374,5 +381,9 @@ class Solver(object):
         
         # return accuracy, precision, recall, f_score 
 
-        return 1 if len(pred) > 0 else 0
+        if 1 in pred:
+            return 1
+        else:
+            return 0
+
 

@@ -102,10 +102,10 @@ if __name__ == '__main__':
 
     test_labels = []
     #We will now open the directory where the datasets are stored and run the model for each one of them, appending the result to the test_labels list.
-    datasets_path = 'Study_datasets/Consumption/pivoted_data'
+    datasets_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Study_datasets/Consumption/pivoted_data'
     for dataset_file in os.listdir(datasets_path):
         config = Config()
-        if dataset_file.endswith('.csv'):
+        if dataset_file.endswith('.csv') and dataset_file == 'SUPPLY034.csv':
             dataset_path = os.path.join(datasets_path, dataset_file)
             config.data_path = dataset_path
             config.mode = 'train'
