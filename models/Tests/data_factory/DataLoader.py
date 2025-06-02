@@ -81,6 +81,26 @@ class EnelSegLoader(Dataset):
         df_consumption['Scaled_Consumption'] = df_consumption['val']
         print("Data is assumed to be pre-scaled. Using 'val' column as 'Scaled_Consumption'.")
         
+        #Computing statistics
+        print("Calculating global statistics for each Supply_ID...")
+        self.supply_statistics = {}
+        for supply_id, group_df in df_consumption.groupby('Supply_ID'):
+            mean_val = group_df['Scaled_Consumption'].mean()
+            std_val = group_df['Scaled_Consumption'].std()
+            median_val = group_df['Scaled_Consumption'].median()
+            
+            # Handle cases where std might be NaN (e.g., supply with only one reading or constant values)
+            if pd.isna(std_val):
+                std_val = 0.0 # Assign a default, or a very small epsilon if division by std is later expected
+            
+            self.supply_statistics[supply_id] = {
+                'mean_consumption': mean_val,
+                'std_consumption': std_val,
+                'median_consumption': median_val,
+            }
+        print(f"Finished calculating statistics for {len(self.supply_statistics)} supplies.")
+
+
         # --- 2. Perform Supply-Level Split ---
         print('Performing Supply-Level Split ')
         supply_labels = df_consumption[['Supply_ID', 'Is_Non_Regular']].drop_duplicates()
@@ -131,9 +151,20 @@ class EnelSegLoader(Dataset):
         self.val_labels = self.test_labels
         self.val_metadata = self.test_metadata
 
+        # The thresholding data should be entirely normal. Using the training sequences
+        # ensures this, as they were filtered to be non-regular (normal) supplies.
+        self.thre_sequences = self.train_sequences
+        self.thre_labels = self.train_labels # These labels will all be 0 (normal)
+        self.thre_metadata = self.train_metadata # Metadata reflects normal too
+        
+
         print(f"Train sequences count: {len(self.train_sequences)}")
         print(f"Test sequences count: {len(self.test_sequences)}")
         print(f"Validation sequences count: {len(self.val_sequences)}")
+        print(f"Thresholding sequences count: {len(self.thre_sequences)}") # Optional: Add this print for clarity
+
+
+
 
 
     def __len__(self):
@@ -148,19 +179,70 @@ class EnelSegLoader(Dataset):
 
     def __getitem__(self, index):
         if self.mode == "train":
-            return torch.tensor(self.train_sequences[index], dtype=torch.float32).unsqueeze(-1), \
-                   torch.tensor(self.train_labels[index], dtype=torch.float32)
+            current_sequences = self.train_sequences
+            current_labels = self.train_labels
+            current_metadata = self.train_metadata
         elif self.mode == 'val':
-            return torch.tensor(self.val_sequences[index], dtype=torch.float32).unsqueeze(-1), \
-                   torch.tensor(self.val_labels[index], dtype=torch.float32)
+            current_sequences = self.val_sequences
+            current_labels = self.val_labels
+            current_metadata = self.val_metadata
         elif self.mode == 'test':
-            # Corrected line: Access metadata directly from the list
-            return torch.tensor(self.test_sequences[index], dtype=torch.float32).unsqueeze(-1), \
-                   torch.tensor(self.test_labels[index], dtype=torch.float32), \
-                   self.test_metadata[index] # <--- Changed .iloc[index] to just [index]
-        else: # Fallback for other modes
-            return torch.tensor(self.test_sequences[index], dtype=torch.float32).unsqueeze(-1), \
-                   torch.tensor(self.test_labels[index], dtype=torch.float32)
+            current_sequences = self.test_sequences
+            current_labels = self.test_labels
+            current_metadata = self.test_metadata
+        elif self.mode == 'thre': # --- ADD THIS CONDITION ---
+            current_sequences = self.thre_sequences
+            current_labels = self.thre_labels
+            current_metadata = self.thre_metadata
+        else: # Fallback for any other custom modes you might add later
+            print(f"Warning: Unknown mode '{self.mode}'. Falling back to test sequences.")
+            current_sequences = self.test_sequences
+            current_labels = self.test_labels
+            current_metadata = self.test_metadata
+        # Get the consumption sequence for the current index
+        sequence_data = current_sequences[index] # This is a numpy array, shape (win_size,)
+
+        # Get the metadata for the current sequence to extract the Supply_ID
+        metadata_item = current_metadata[index]
+        supply_id = metadata_item['Supply_ID']
+
+        # Retrieve the pre-calculated supply statistics
+        supply_stats = self.supply_statistics.get(supply_id)
+
+        # Define default statistics for safety, or raise an error if stats are mandatory
+        if supply_stats is None:
+            # You might want to log a warning here if this happens frequently
+            print(f"Warning: No statistics found for Supply_ID: {supply_id}. Using default zeros.")
+            mean_c, std_c, median_c = 0.0, 0.0, 0.0 # Or global average, or raise an error
+        else:
+            mean_c = supply_stats['mean_consumption']
+            std_c = supply_stats['std_consumption']
+            median_c = supply_stats['median_consumption']
+
+        # Create a numpy array of these static features for the current supply
+        # The order here should match what your model expects
+        static_features_for_window = np.array([mean_c, std_c, median_c], dtype=np.float32) # Shape (num_stats,)
+
+        # Repeat the static features for each point in the window (win_size times)
+        # This transforms (num_stats,) into (win_size, num_stats)
+        repeated_static_features = np.tile(static_features_for_window, (self.win_size, 1))
+
+        # Combine the consumption sequence with the repeated static features
+        # Reshape sequence_data from (win_size,) to (win_size, 1) to allow concatenation along axis=1
+        combined_sequence = np.concatenate(
+            [sequence_data.reshape(-1, 1), repeated_static_features],
+            axis=1 # Concatenate along the feature dimension
+        ) # Resulting shape: (self.win_size, 1 + num_stats)
+
+        # Convert the combined sequence and labels to PyTorch tensors
+        sequences_tensor = torch.tensor(combined_sequence, dtype=torch.float32)
+        labels_tensor = torch.tensor(current_labels[index], dtype=torch.float32)
+
+        # Return values based on the mode
+        if self.mode == 'test':
+            return sequences_tensor, labels_tensor, metadata_item
+        else:
+            return sequences_tensor, labels_tensor
 
 
 # --- Modified get_loader_segment function ---

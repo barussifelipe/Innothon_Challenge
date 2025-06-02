@@ -7,16 +7,19 @@ from DataLoader import EnelSegLoader, get_loader_segment # Ensure this path is c
 
 # --- Configuration for testing ---
 # (These should match the constants in your EnelSegLoader file)
-PROCESSED_DATA_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Tests/Data/1300.csv'
+PROCESSED_DATA_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Tests/Data/1825_days.csv'
 DEFAULT_WIN_SIZE = 96
 DEFAULT_STEP = 1
 BATCH_SIZE = 4 # Use a small batch size for easier inspection
+
+# Define the number of statistics you've added (e.g., mean, std, median = 3)
+# Make sure this matches your implementation in EnelSegLoader's __getitem__
+NUM_ADDED_STATS = 3 
 
 print("--- Testing EnelSegLoader ---")
 
 # --- Initialize DataLoaders ONCE for each mode ---
 # The actual loading and processing happens inside EnelSegLoader's __init__
-# This will trigger the full __init__ process (sorting, sequence generation) once for train mode
 print(f"\nInitializing DataLoader for 'train' mode with data from: {PROCESSED_DATA_PATH}")
 train_dataloader = get_loader_segment(
     data_path=PROCESSED_DATA_PATH,
@@ -30,7 +33,6 @@ print("Train DataLoader initialized.")
 print(f"Number of training sequences: {len(train_dataloader.dataset)}")
 
 
-# This will trigger the full __init__ process (sorting, sequence generation) once for test mode
 print(f"\nInitializing DataLoader for 'test' mode with data from: {PROCESSED_DATA_PATH}")
 test_dataloader = get_loader_segment(
     data_path=PROCESSED_DATA_PATH,
@@ -47,16 +49,29 @@ print(f"Number of validation sequences: {len(test_dataloader.dataset.val_sequenc
 
 # --- Test 1: Check DataLoader Iteration (Training Mode) ---
 print("\n--- Checking DataLoader for Training Mode ---")
-num_train_batches_to_check = min(3, len(train_dataloader)) # Check first 3 batches or fewer if less available
+num_train_batches_to_check = min(3, len(train_dataloader)) 
 if num_train_batches_to_check == 0:
     print("No training batches to check. Training set might be empty.")
 else:
     for i, (sequences, labels) in enumerate(train_dataloader):
         print(f"\nTraining Batch {i+1}/{num_train_batches_to_check}:")
-        print(f"Sequences shape: {sequences.shape}") # Expected: [BATCH_SIZE, WIN_SIZE, 1]
+        # --- UPDATED CHECK ---
+        expected_feature_dim = 1 + NUM_ADDED_STATS
+        print(f"Sequences shape: {sequences.shape}") # Expected: [BATCH_SIZE, WIN_SIZE, 1 + NUM_ADDED_STATS]
+        if sequences.shape[2] != expected_feature_dim:
+            print(f"ERROR: Expected feature dimension {expected_feature_dim}, but got {sequences.shape[2]} for sequences.")
+        # --- END UPDATED CHECK ---
         print(f"Labels shape: {labels.shape}")     # Expected: [BATCH_SIZE, WIN_SIZE]
-        print(f"Sequences (first): \n{sequences[0, :, 0].numpy()}") # Print first sequence in batch
-        print(f"Labels (first): \n{labels[0, :].numpy()}") # Print labels for first sequence
+        
+        # Print first sequence's consumption and added stats
+        print(f"Consumption (first sequence): \n{sequences[0, :, 0].numpy()}") 
+        if NUM_ADDED_STATS > 0:
+            print(f"Added Statistics (first sequence, first point): {sequences[0, 0, 1:].numpy()}") # Check first point's stats
+            # Verify that stats are constant across the window for a single sequence
+            if not np.all(sequences[0, :, 1:].numpy() == sequences[0, 0, 1:].numpy()):
+                print("WARNING: Added statistics are NOT constant across the window for the first sequence.")
+
+        print(f"Labels (first sequence): \n{labels[0, :].numpy()}")
 
         # Verify: labels should be all zeros for training data (only normal supplies)
         if not (labels == 0).all():
@@ -67,29 +82,38 @@ else:
 
 # --- Test 2: Check DataLoader Iteration (Test Mode) ---
 print("\n--- Checking DataLoader for Test Mode ---")
-num_test_batches_to_check = min(3, len(test_dataloader)) # Check first 3 batches
+num_test_batches_to_check = min(3, len(test_dataloader)) 
 if num_test_batches_to_check == 0:
     print("No test batches to check. Test set might be empty.")
 else:
     for i, (sequences, labels, metadata) in enumerate(test_dataloader):
         print(f"\nTest Batch {i+1}/{num_test_batches_to_check}:")
-        print(f"Sequences shape: {sequences.shape}") # Expected: [BATCH_SIZE, WIN_SIZE, 1]
+
+        expected_feature_dim = 1 + NUM_ADDED_STATS
+        print(f"Sequences shape: {sequences.shape}") # Expected: [BATCH_SIZE, WIN_SIZE, 1 + NUM_ADDED_STATS]
+        if sequences.shape[2] != expected_feature_dim:
+            print(f"ERROR: Expected feature dimension {expected_feature_dim}, but got {sequences.shape[2]} for sequences.")
         print(f"Labels shape: {labels.shape}")     # Expected: [BATCH_SIZE, WIN_SIZE]
         print(f"Metadata type: {type(metadata)}") # Expected: dict
         print(f"Sample Metadata (first item in batch):")
+        
+        # Print first sequence's consumption and added stats
+        print(f"Consumption (first sequence): \n{sequences[0, :, 0].numpy()}")
+        if NUM_ADDED_STATS > 0:
+            print(f"Added Statistics (first sequence, first point): {sequences[0, 0, 1:].numpy()}")
+            if not np.all(sequences[0, :, 1:].numpy() == sequences[0, 0, 1:].numpy()):
+                print("WARNING: Added statistics are NOT constant across the window for the first sequence.")
+
         # Metadata is a dict of lists/tensors from DataLoader's default_collate
         for key, value in metadata.items():
-            # For each key, value is a list of batch_size items or a tensor
             print(f"  {key}: {value[0]}") # Print first item of each metadata field
 
         # Verify: check if labels for a non-regular supply are all 1s
         for j in range(sequences.shape[0]): # Iterate through items in the batch
-            # metadata['Supply_ID'] is now a list/tensor, access with [j]
             supply_id = metadata['Supply_ID'][j]
-            is_non_regular_supply = metadata['Is_Non_Regular_Supply'][j].item() # .item() for scalar tensor if it's a tensor
+            is_non_regular_supply = metadata['Is_Non_Regular_Supply'][j].item() 
 
             print(f"  Sequence {j+1} (Supply: {supply_id}, Is_Non_Regular_Supply: {is_non_regular_supply}):")
-            # print(f"    Labels: {labels[j, :].numpy()}") # Uncomment to see full labels
 
             if is_non_regular_supply == 1:
                 if not (labels[j, :] == 1).all():
