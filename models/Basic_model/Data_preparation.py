@@ -156,24 +156,38 @@ def combine_features_labels(df, supplies_drop):
 
 if __name__ == '__main__':
 
+    # Define the list of supplies you want to include
+    # Example: selected_supplies = ['SUPPLY001', 'SUPPLY005', 'SUPPLY010']
+    # If you want to include all supplies, set selected_supplies = None or an empty list
+    selected_supplies = ['SUPPLY_006', 'SUPPLY_002', 'SUPPLY_030', 'SUPPLY_1O0'] # Set this to a list of Supply_IDs if you want to filter
+
     #Sample the dataset
     filtered_df = sample_dataset_by_chunks(
         input_path=consumption_path,
         value_to_count=96,
-        max_appearances=400,
+        max_appearances=1825,
         groupby_column='Supply_ID',
         filter_column='id',
         chunksize=10000
     )
 
-    #Get ride of missing vals supplies
-    supplies_drop = ['SUPPLY019', 'SUPPLY082', 'SUPPLY094']
-    df_consumption = filtered_df[~filtered_df['Supply_ID'].isin(supplies_drop)]
+    # Filter by selected supplies if the list is provided
+    if selected_supplies is not None and len(selected_supplies) > 0:
+        df_consumption = filtered_df[filtered_df['Supply_ID'].isin(selected_supplies)].copy()
+        print(f"Filtered to include only selected supplies: {selected_supplies}")
+    else:
+        df_consumption = filtered_df.copy()
+
+
+    #Get ride of missing vals supplies (these are still dropped even if you select supplies)
+    supplies_to_drop = ['SUPPLY019', 'SUPPLY082', 'SUPPLY094']
+    df_consumption = drop_NaN_supplies(df_consumption, supplies_to_drop)
+
 
     #Segment the dataset
     segments = segment_dataset(
         df_consumption,
-        number_segments= 96 #Define sumber of segments to divide day
+        number_segments= 96 #Define number of segments to divide day
     )
 
     #Compute averages
@@ -183,12 +197,12 @@ if __name__ == '__main__':
     dataset_df = prepare_dataframe(segments_averages)
     
     #Merge features and labels
-    final_df = combine_features_labels(dataset_df, supplies_drop)
+    final_df = combine_features_labels(dataset_df, supplies_to_drop)
     print(final_df.head())
 
     #Save final df as csv
-    output_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Basic_model/Data'
-    final_df.to_csv(f'{output_path}/Basic_model_dataset_quarterhouravg_400days.csv')
+    output_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Study_datasets/Consumption'
+    final_df.to_csv(f'{output_path}/Basic_model_dataset_quarterhouravg_1825days_selected_supplies.csv')
 
 '''
 To select days: I know each day is 'marked by a 96' i wanna take the rows up to the 300th appearance

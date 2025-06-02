@@ -12,11 +12,11 @@ from sklearn.metrics import confusion_matrix, recall_score # For evaluation metr
 from scipy.optimize import minimize_scalar # For robust threshold optimization
 
 # --- Configuration ---
-INPUT_MERGED_DF_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/dataset_5day.csv'
-OUTPUT_FINAL_CSV_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold/results_5day_OCSVM.csv'
-DATA_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold'
-MODEL_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/models' # Directory to save the model and scaler
-FIGURE_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Plots/Kfold'
+INPUT_MERGED_DF_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Created_datasets/full_dataset_5day.csv'
+OUTPUT_FINAL_CSV_PATH = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold_results/results_full_5day_OCSVM.csv'
+DATA_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold_results'
+MODEL_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/models/full_dataset' # Directory to save the model and scaler
+FIGURE_DIR = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Plots/Kfold/full_dataset'
 # Hyperparameter ranges for tuning
 NU_VALUES = [0.005, 0.01, 0.02, 0.05, 0.1]
 GAMMA_VALUES = ['scale', 0.1, 0.01, 0.001]
@@ -103,10 +103,13 @@ merged_df['Period_End_Date'] = pd.to_datetime(merged_df['Period_End_Date'])
 print(f"Merged DataFrame loaded successfully. Total rows: {len(merged_df)}")
 print(merged_df.head())
 
+
+features_drop = ['Max_Consumption_Period', 'Mean_Consumption_Period', 'Median_Consumption_Period']
+
 # --- Define features and target ---
 feature_columns = [col for col in merged_df.columns if col not in
-                   ['Supply_ID', 'Period_Start_Date', 'Period_End_Date', 'Period_Index', 'Daily_Std_Change_Period', 'IQR_Consumption_Period', 'Max_Consumption_Period', 'Std_Consumption_Period',
-                    'CLUSTER', 'Is_Non_Regular', 'anomaly_prediction_ocsvm', 'anomaly_score_ocsvm']]
+                   ['Supply_ID', 'Period_Start_Date', 'Period_End_Date', 'Period_Index',
+                    'CLUSTER', 'Is_Non_Regular', 'anomaly_prediction_ocsvm', 'anomaly_score_ocsvm'] + features_drop]
 
 X_full = merged_df[feature_columns]
 y_full = merged_df['Is_Non_Regular'] # True labels for periods
@@ -325,7 +328,7 @@ df_test_plot['anomaly_score'] = test_decision_scores
 df_test_plot['is_anomaly_true'] = df_test_plot['Is_Non_Regular'] # Using 1 for non-regular (anomaly), 0 for regular (normal)
 
 #Save test df with scores
-df_test_plot.to_csv(f'{DATA_DIR}/test_df_results.csv', index=False)
+df_test_plot.to_csv(f'{DATA_DIR}/full_test_df_results.csv', index=False)
 
 # Apply the final best threshold found on the development set
 test_period_predictions = (test_decision_scores < final_best_threshold).astype(int) # 1 for anomaly, 0 for normal

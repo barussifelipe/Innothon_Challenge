@@ -103,3 +103,7 @@ Average days logged: 1844.29
 Mode of days logged: 1825
 
 A distribution was plotted and shows that most supplies have 1825 days logged
+
+
+Plot how consumption is different from regular vs non regular supply
+

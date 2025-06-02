@@ -2,11 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #Datasets paths
-test_df_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold/test_df_results.csv'
-full_df_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold/results_5day_OCSVM.csv'
+test_df_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold/full_test_df_results.csv'
+full_df_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/Kfold/results_full_5day_OCSVM.csv'
 
 #Save path
-output_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Plots/Kfold'
+output_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Plots/Kfold/full_dataset'
 
 #Load in dataset
 test_df = pd.read_csv(test_df_path)
@@ -23,6 +23,16 @@ test_regular_df = filtered_test_df[filtered_test_df['Is_Non_Regular'] == 0]
 test_non_regular_df = filtered_test_df[filtered_test_df['Is_Non_Regular'] == 1]
 full_regular_df = filtered_full_df[filtered_full_df['Is_Non_Regular'] == 0]
 full_non_regular_df = filtered_full_df[filtered_full_df['Is_Non_Regular'] == 1]
+
+
+#Amounts
+non_regular_anomalies = test_non_regular_df[test_non_regular_df['anomaly_score'] < 0.2231]
+regular_anomalies = test_regular_df[test_regular_df['anomaly_score'] < 0.2231]
+
+print(len(non_regular_anomalies))
+print(len(regular_anomalies))
+
+
 
 # Define consistent plot parameters
 plot_params = {
@@ -100,7 +110,7 @@ plt.scatter(
     alpha=0.7,
     s=plot_params['marker_size']
 )
-plt.axhline(y=-0.0071, color=plot_params['threshold_color'], linestyle=plot_params['threshold_linestyle'], label='Anomaly Threshold (y=-0.0071)', linewidth=plot_params['threshold_linewidth'])
+plt.axhline(y=0.2231, color=plot_params['threshold_color'], linestyle=plot_params['threshold_linestyle'], label='Anomaly Threshold (y=0.2231)', linewidth=plot_params['threshold_linewidth'])
 apply_plot_style(plt.gca(), 'Test Data: Anomaly Scores', 'Data Point Index', 'Anomaly Score')
 
 plt.tight_layout()
@@ -127,7 +137,7 @@ plt.scatter(
     alpha=0.7,
     s=plot_params['marker_size']
 )
-plt.axhline(y=-0.0071, color=plot_params['threshold_color'], linestyle=plot_params['threshold_linestyle'], label='Anomaly Threshold (y=-0.0071)', linewidth=plot_params['threshold_linewidth'])
+plt.axhline(y=0.2231, color=plot_params['threshold_color'], linestyle=plot_params['threshold_linestyle'], label='Anomaly Threshold (y=0.2231)', linewidth=plot_params['threshold_linewidth'])
 apply_plot_style(plt.gca(), 'Full Data: Anomaly Scores', 'Data Point Index', 'Anomaly Score')
 
 plt.tight_layout()

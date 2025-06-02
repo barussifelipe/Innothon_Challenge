@@ -21,9 +21,10 @@ except FileNotFoundError:
 # The 'id' column typically ranges from 1 to 96 for quarter-hour data.
 # We'll need to adjust 'id' to represent minutes from start of the day.
 
-#Drop supplies I already know have NaNs
-Supplies_drop = ['SUPPLY018','SUPPLY019', 'SUPPLY082', 'SUPPLY094']
-df_raw = df_raw[~df_raw['Supply_ID'].isin(Supplies_drop)]
+#Drop supplies
+NaN_Supplies_drop = ['SUPPLY018','SUPPLY019', 'SUPPLY082', 'SUPPLY094']
+not_enough_days_drop = ['SUPPLY001', 'SUPPLY069', 'SUPPLY071', 'SUPPLY092']
+df_raw = df_raw[~df_raw['Supply_ID'].isin(NaN_Supplies_drop + not_enough_days_drop)]
 
 # Convert 'meas_ym' to string and 'meas_dd' to string for concatenation
 df_raw['year_month_str'] = df_raw['meas_ym'].astype(str)
@@ -210,7 +211,7 @@ def create_period_features_for_anomaly_detection(df, period_length_days=10, desi
 period_features_df = create_period_features_for_anomaly_detection(
     df_raw,
     period_length_days=5,
-    desired_total_days=400
+    desired_total_days=1825
 )
 
 try:
@@ -254,5 +255,5 @@ if not merged_df.empty:
     print(merged_df['Supply_ID'].value_counts().tail())
 
 #Save new dataset
-merged_df.to_csv('/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/dataset_5day.csv')
+merged_df.to_csv('/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/models/Unsupervized/Data/full_dataset_5day.csv')
 print('\nSaved dataset')

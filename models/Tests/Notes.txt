@@ -1,0 +1,70 @@
+Begin anomaly transformer implementation
+
+==== Data Preparation ====
+
+Use raw consumption data set combined with labels to create a dataset
+
+1825 days per supply
+NaN supplies drop: ['SUPPLY018','SUPPLY019', 'SUPPLY082', 'SUPPLY094', 'SUPPLY077', 'SUPPLY085']
+Not enough days supplies dropped: ['SUPPLY001', 'SUPPLY069', 'SUPPLY071', 'SUPPLY092']
+
+,Supply_ID,val,Timestamp,Is_Non_Regular
+0,SUPPLY002,0.032,2019-01-01 00:00:00,1
+1,SUPPLY002,0.033,2019-01-01 00:15:00,1
+2,SUPPLY002,0.032,2019-01-01 00:30:00,1
+3,SUPPLY002,0.033,2019-01-01 00:45:00,1
+4,SUPPLY002,0.032,2019-01-01 01:00:00,1
+5,SUPPLY002,0.033,2019-01-01 01:15:00,1
+
+
+==== Data Loader ====
+
+    1. __innit__:
+        Loads pre processed data
+        Computes supply level statistics
+        Supply level split: The data is split into training and test. Training set contains only regular supplies data. Test set contains both. Validation set to be created
+        Sequence creation: A sliding window approach is implemented. In more detail, given a window size and step,
+            sequences of window size are created overlapping nearby sequences. Sequences slide by the defined step.
+
+    2. __len__:
+        Returns the number of sequences for the selected set (train, val, test)
+
+    3. __getitem__:
+        Returns sequence of selected index of selected set including all features defined and computed at __innit__
+
+
+==== From here ====
+Each sequence will be fed to the anomaly transformer, in which it will learn the varying complex patterns.
+The output will be anomaly scores for each individual point (15 min time frame). This can be used to define longer period anomalies (compare entire window total anomaly scores?)
+
+==== For tomorrow ====
+Confirm why some supplies were having missing timestamps when processing dataset. DONE
+
+Update data loader if needed.  DONE
+
+Confirm that the approach of feeding sequences of different supplies to create a single model is optimal (supplies might differ from each other and not be anomalous)
+Implement features like mean and std to give overall window/supply context. DONE
+
+Make plots suggested by Marcelo DONE
+
+With data loader ready begin adapting rest of the code: Check that model scripts are compatible with data loader. Will previous custom performance metrics be used?
+=======================
+
+
+ADDING CONTEXT FEATURES:
+
+Since each supply can differ for any number of reasons other than just being anomalous/fraud, adding context
+    features for each datapoint gives the overrall context of the supply it belongs to. These features repeat themselves for each data point in the window
+- mean
+- std
+- median
+
+
+==== For tomorrow ====
+With data loader ready begin adapting rest of the code: Check that model scripts are compatible with data loader. Will previous custom performance metrics be used? *DONE*
+
+Find optimal parameters from first runs and debugging
+
+Perform any debugging needed
+
+Try to get access to gpu
