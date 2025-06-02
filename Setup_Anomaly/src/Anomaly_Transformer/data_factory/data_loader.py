@@ -205,16 +205,15 @@ class EnergySegLoader(object):
         self.step = step
         self.win_size = win_size
         self.scaler = StandardScaler()
-        data = pd.read_csv(data_path + '/models/Basic_model/Data/Basic_model_dataset_quarterhouravg_400days.csv')
-        features = data.drop(columns=["Supply_ID", "is_Regular"])
-        labels = data["is_Regular"]
-        data_train, data_test, label_train, label_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+        data = pd.read_csv(data_path).drop(columns=["date"]).apply(lambda col: col.str.replace(',', '.').astype(float))
+        data_train, data_test = train_test_split(data, test_size=0.2, random_state=42)
         self.scaler.fit(data_train)
         self.train = self.scaler.transform(data_train)
         data_len = len(self.train)
         self.test = self.scaler.transform(data_test)
         self.val = self.train[(int)(data_len * 0.8):]
-        self.test_labels = label_test
+        self.test_labels = np.zeros((self.test.shape[0], self.test.shape[1]))  # Assuming no labels provided
+        
 
     def __len__(self):
         if self.mode == "train":

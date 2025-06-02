@@ -11,16 +11,27 @@ def str2bool(v):
     return v.lower() in ('true')
 
 
-def main(config):
+def main(config, test_labels = None):
     cudnn.benchmark = True
     if (not os.path.exists(config.model_save_path)):
         mkdir(config.model_save_path)
     solver = Solver(vars(config))
 
+#For each dataset, I want to train a model on it, then, I want to test and see if at least one point is given as anomalous, if so, we classify this dataset as anomalous itself. Then, I want to build a label that has these classifications to compare with the labels given. 
+
+#However, the way that this code is implemented is to give the accurracy for each one of the datasets and not in the end, so I have to run both of the methods and then get the result of them, store on this list and then after, give the prediction result outside this method, in the main. 
+#So on the test method I have to return the classification made, 0 or 1, and append. 
+
+#Then I need to do a for loop that acess each of these data, puts then on train and then on test, append the result of the test to this list and calculate the metrics later. 
+
+#Then we don't need the accuracy metrics on the test method. 
+#We will implement these at the end. 
+
     if config.mode == 'train':
         solver.train()
     elif config.mode == 'test':
-        solver.test()
+        test_labels.append(solver.test())
+       
 
     return solver
 
@@ -29,10 +40,10 @@ class Config():
            num_epochs: int = 10,
            k: int = 3,
            win_size: int = 10,
-           input_c: int = 95,
-           output_c: int = 95,
-           batch_size: int = 1024,  
-           pretrained_model: str = 20,
+           input_c: int = 96,
+           output_c: int = 96,
+           batch_size: int = 128,  
+           pretrained_model: str = None,
            dataset: str = 'Consumption',
            mode: str = 'test',
            data_path: str = r'C:\Users\Vanessa Castanho\Documents\Programming\Innothon - Challenge 2',
@@ -77,5 +88,32 @@ if __name__ == '__main__':
     print('------------ Options -------------')
     for k, v in sorted(args.items()):
         print('%s: %s' % (str(k), str(v)))
-    print('-------------- End ----------------')
-    main(Config())
+
+
+    # from sklearn.metrics import precision_recall_fscore_support
+    # from sklearn.metrics import accuracy_score
+    # accuracy = accuracy_score(gt, pred)
+    # precision, recall, f_score, support = precision_recall_fscore_support(gt, pred,
+    #                                                                         average='binary')
+    # print(
+    #     "Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
+    #         accuracy, precision,
+    #         recall, f_score))
+
+    test_labels = []
+    #We will now open the directory where the datasets are stored and run the model for each one of them, appending the result to the test_labels list.
+    datasets_path = 'Study_datasets/Consumption/pivoted_data'
+    for dataset_file in os.listdir(datasets_path):
+        config = Config()
+        if dataset_file.endswith('.csv'):
+            dataset_path = os.path.join(datasets_path, dataset_file)
+            config.data_path = dataset_path
+            config.mode = 'train'
+            config.pretrained_model = None  # Assuming no pretrained model for testing
+            print(f"Training on dataset: {dataset_file}")
+            main(config)
+            config.mode = "test"
+            config.pretrained_model = 20
+            main(config, test_labels)
+            print(f"Testing on dataset: {dataset_file}, label: {test_labels[-1]}")
+    print("Test labels:", test_labels)

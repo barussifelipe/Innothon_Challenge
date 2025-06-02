@@ -336,40 +336,43 @@ class Solver(object):
         print("gt:     ", gt.shape)
 
         # detection adjustment: please see this issue for more information https://github.com/thuml/Anomaly-Transformer/issues/14
-        anomaly_state = False
-        for i in range(len(gt)):
-            if gt[i] == 1 and pred[i] == 1 and not anomaly_state:
-                anomaly_state = True
-                for j in range(i, 0, -1):
-                    if gt[j] == 0:
-                        break
-                    else:
-                        if pred[j] == 0:
-                            pred[j] = 1
-                for j in range(i, len(gt)):
-                    if gt[j] == 0:
-                        break
-                    else:
-                        if pred[j] == 0:
-                            pred[j] = 1
-            elif gt[i] == 0:
-                anomaly_state = False
-            if anomaly_state:
-                pred[i] = 1
+        # anomaly_state = False
+        # for i in range(len(gt)):
+        #     if gt[i] == 1 and pred[i] == 1 and not anomaly_state:
+        #         anomaly_state = True
+        #         for j in range(i, 0, -1):
+        #             if gt[j] == 0:
+        #                 break
+        #             else:
+        #                 if pred[j] == 0:
+        #                     pred[j] = 1
+        #         for j in range(i, len(gt)):
+        #             if gt[j] == 0:
+        #                 break
+        #             else:
+        #                 if pred[j] == 0:
+        #                     pred[j] = 1
+        #     elif gt[i] == 0:
+        #         anomaly_state = False
+        #     if anomaly_state:
+        #         pred[i] = 1
 
-        pred = np.array(pred)
-        gt = np.array(gt)
-        print("pred: ", pred.shape)
-        print("gt:   ", gt.shape)
+        # pred = np.array(pred)
+        # gt = np.array(gt)
+        # print("pred: ", pred.shape)
+        # print("gt:   ", gt.shape)
 
-        from sklearn.metrics import precision_recall_fscore_support
-        from sklearn.metrics import accuracy_score
-        accuracy = accuracy_score(gt, pred)
-        precision, recall, f_score, support = precision_recall_fscore_support(gt, pred,
-                                                                              average='binary')
-        print(
-            "Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
-                accuracy, precision,
-                recall, f_score))
+        # from sklearn.metrics import precision_recall_fscore_support
+        # from sklearn.metrics import accuracy_score
+        # accuracy = accuracy_score(gt, pred)
+        # precision, recall, f_score, support = precision_recall_fscore_support(gt, pred,
+        #                                                                         average='binary')
+        # print(
+        #     "Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
+        #         accuracy, precision,
+        #         recall, f_score))
+        
+        # return accuracy, precision, recall, f_score 
 
-        return accuracy, precision, recall, f_score
+        return 1 if len(pred) > 0 else 0
+
