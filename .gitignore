@@ -58,3 +58,9 @@ models/Tests/Data/100_days.csv
 models/Tests/Data/1825_days.csv
 models/Tests/Data/10_days.csv
 Setup_Anomaly/Setup_Anomaly/src/Anomaly_Transformer/checkpoints/Consumption_checkpoint.pth
+Allegati - EsempioDataset/EsempioDataset - ANAGRAFICA.csv
+Allegati - EsempioDataset/EsempioDataset - CONSUMI.csv
+Allegati - EsempioDataset/EsempioDataset - LABELS.csv
+Allegati - EsempioDataset/EsempioDataset - INTERRUZIONI.csv
+Allegati - EsempioDataset/EsempioDataset - LAVORI.csv
+Allegati - EsempioDataset/EsempioDataset - PAROLE DI STATO.csv

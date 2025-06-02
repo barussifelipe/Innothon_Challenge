@@ -205,7 +205,14 @@ class EnergySegLoader(object):
         self.step = step
         self.win_size = win_size
         self.scaler = StandardScaler()
-        data = pd.read_csv(data_path).drop(columns=["date"]).apply(lambda col: col.str.replace(',', '.').astype(float))
+        #I want to transform the data to float, so I will drop the date column and replace commas with dots. 
+        #Also, I want to check if the data is indeed a string, if not, put a condition to check if the data is a string and then apply the transformation.
+        data = pd.read_csv(data_path).drop(columns=["date"])
+        #We will drop row with NaN values'
+        data = data.dropna()
+        #Apply transformation
+        data = data.applymap(str)
+        data = data.apply(lambda col: col.str.replace(',', '.').astype(float))
         data_train, data_test = train_test_split(data, test_size=0.2, random_state=42)
         self.scaler.fit(data_train)
         self.train = self.scaler.transform(data_train)
