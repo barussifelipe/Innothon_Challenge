@@ -11,9 +11,7 @@ import pandas as pd
 # SUPPLY001	202210	20	7	0	A1
 
 
-consumption_data = pd.read_csv("Study_datasets/EsempioDataset - CONSUMI.csv", encoding="utf-16", sep="\t", header=0)
-
-
+consumption_data = pd.read_csv("Study_datasets/EsempioDataset - CONSUMI.csv", encoding="utf-16", sep="\t", decimal = ',', header=0)
 
 #Now I want to change the format of the data, I want to have a column for each supply ID and each row as a time point.
 
@@ -26,6 +24,12 @@ consumption_data['date'] = consumption_data['meas_ym'] + '/' + consumption_data[
 
 # Now I will drop the original meas_ym and meas_dd columns
 consumption_data.drop(columns=['meas_ym', 'meas_dd'], inplace=True)
+
+
+#Before continuing some supplies are known problematics, so drop them
+
+
+
 
 # print(consumption_data.head())
 #    Supply_ID  id val magnitude        date
@@ -65,5 +69,8 @@ for supply_id, df in supply_dataframes.items():
     df.to_csv(file_path, index=True)  # Save with date as index
     print(f"Saved {supply_id} data to {file_path}")
 # Now we have the data saved in the pivoted_data folder, with each supply ID as a separate file.
+
+
+
 
 
