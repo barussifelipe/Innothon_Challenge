@@ -58,6 +58,7 @@ models/Tests/Data/100_days.csv
 models/Tests/Data/1825_days.csv
 models/Tests/Data/10_days.csv
 Setup_Anomaly/Setup_Anomaly/src/Anomaly_Transformer/checkpoints/Consumption_checkpoint.pth
+<<<<<<< HEAD
 Setup_Anomaly/single_supply_analysis_results/SUPPLY021_avg_consumption_profiles.png
 Setup_Anomaly/single_supply_analysis_results/SUPPLY021_anomaly_scores_plot.png
 Setup_Anomaly/single_supply_analysis_results/SUPPLY021_anomaly_scores_histogram.png
@@ -76,3 +77,11 @@ Setup_Anomaly/single_supply_analysis_results/SUPPLY009_anomalous_day_206_consump
 Setup_Anomaly/single_supply_analysis_results/SUPPLY009_anomalous_day_23_consumption.png
 Setup_Anomaly/Setup_Anomaly/src/Anomaly_Transformer/checkpoints/anomaly_scores/SUPPLY021_anomaly_scores.csv
 Setup_Anomaly/Setup_Anomaly/src/Anomaly_Transformer/checkpoints/anomaly_scores/SUPPLY009_anomaly_scores.csv
+=======
+Allegati - EsempioDataset/EsempioDataset - ANAGRAFICA.csv
+Allegati - EsempioDataset/EsempioDataset - CONSUMI.csv
+Allegati - EsempioDataset/EsempioDataset - LABELS.csv
+Allegati - EsempioDataset/EsempioDataset - INTERRUZIONI.csv
+Allegati - EsempioDataset/EsempioDataset - LAVORI.csv
+Allegati - EsempioDataset/EsempioDataset - PAROLE DI STATO.csv
+>>>>>>> 41f3c7f05ce5814afbb1a78a7c0e3bebebf6dd89

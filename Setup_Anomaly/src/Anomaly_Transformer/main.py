@@ -3,7 +3,7 @@ import argparse
 
 from torch.backends import cudnn
 from Anomaly_Transformer.utils.utils import *
-
+import pandas as pd
 from Anomaly_Transformer.solver import Solver
 
 
@@ -30,7 +30,12 @@ def main(config, test_labels = None):
     if config.mode == 'train':
         solver.train()
     elif config.mode == 'test':
-        test_labels.append(solver.test())
+        label, anom_score = solver.test()
+        test_labels.append(label)
+        # Save the anomaly scores to a file
+        if not os.path.exists("Setup_Anomaly/src/Anomaly_Transformer/anomaly_scores"):
+            os.makedirs("Setup_Anomaly/src/Anomaly_Transformer/anomaly_scores")
+        np.save(f"Setup_Anomaly/src/Anomaly_Transformer/anomaly_scores/{config.snumber}.npy", anom_score)
        
 
     return solver
@@ -39,16 +44,17 @@ class Config():
     def __init__(self, lr: float = 1e-4,
            num_epochs: int = 10,
            k: int = 3,
-           win_size: int = 10,
+           win_size: int = 88,
            input_c: int = 96,
            output_c: int = 96,
-           batch_size: int = 128,  
+           batch_size: int = 256,  
            pretrained_model: str = None,
            dataset: str = 'Consumption',
            mode: str = 'test',
            data_path: str = r'C:\Users\Vanessa Castanho\Documents\Programming\Innothon - Challenge 2',
            model_save_path: str = 'Setup_Anomaly/src/Anomaly_Transformer/checkpoints',
-           anormly_ratio: float = 4.00):
+           anormly_ratio: float = 1.00, 
+           snumber: str = "SUPPLY"):
         
         self.lr = lr
         self.num_epochs = num_epochs
@@ -63,6 +69,7 @@ class Config():
         self.data_path = data_path
         self.model_save_path = model_save_path
         self.anormly_ratio = anormly_ratio
+        self.snumber = snumber
 
 
 if __name__ == '__main__':
@@ -90,23 +97,16 @@ if __name__ == '__main__':
         print('%s: %s' % (str(k), str(v)))
 
 
-    # from sklearn.metrics import precision_recall_fscore_support
-    # from sklearn.metrics import accuracy_score
-    # accuracy = accuracy_score(gt, pred)
-    # precision, recall, f_score, support = precision_recall_fscore_support(gt, pred,
-    #                                                                         average='binary')
-    # print(
-    #     "Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
-    #         accuracy, precision,
-    #         recall, f_score))
+    
 
     test_labels = []
     #We will now open the directory where the datasets are stored and run the model for each one of them, appending the result to the test_labels list.
-    datasets_path = '/Users/diegozago2312/Documents/Work/Ennel_Innothon/Challenge2/Study_datasets/Consumption/pivoted_data'
+    datasets_path = 'Study_datasets/Consumption/pivoted_data'
     for dataset_file in os.listdir(datasets_path):
         config = Config()
-        if dataset_file.endswith('.csv') and dataset_file == 'SUPPLY034.csv':
+        if dataset_file.endswith('.csv'):
             dataset_path = os.path.join(datasets_path, dataset_file)
+            config.snumber = dataset_file.split('.')[0]  # Use the filename without extension as snumber
             config.data_path = dataset_path
             config.mode = 'train'
             config.pretrained_model = None  # Assuming no pretrained model for testing
@@ -115,5 +115,30 @@ if __name__ == '__main__':
             config.mode = "test"
             config.pretrained_model = 20
             main(config, test_labels)
-            print(f"Testing on dataset: {dataset_file}, label: {test_labels[-1]}")
+            print(f"Testing on dataset: {dataset_file}, label: {test_labels[-1]}, win_size: {config.win_size}")
     print("Test labels:", test_labels)
+    print("------------ End -----------------")
+
+    from sklearn.metrics import precision_recall_fscore_support
+    from sklearn.metrics import accuracy_score
+    
+    def original_labels():
+        original = pd.read_csv("Allegati - EsempioDataset/EsempioDataset - LABELS.csv", encoding='utf-16', sep='\t', decimal=',')
+
+        #Now we will change the Frode and Anomaly columns to 1 and 0 the rest will be 0. 
+        original['CLUSTER'] = original['CLUSTER'].apply(lambda x: 0 if x == 'Regolare' else 1)
+
+        #Now we will create a new column with the labels, if the value is 1 then it is an anomaly, if it is 0 then it is not.
+
+        label = original["CLUSTER"].values
+
+        return label
+    
+    # true_labels = original_labels()
+    # accuracy = accuracy_score(true_labels, test_labels)
+    # precision, recall, f_score, support = precision_recall_fscore_support(true_labels, test_labels,
+    #                                                                         average='binary')
+    # print(
+    #     "Accuracy : {:0.4f}, Precision : {:0.4f}, Recall : {:0.4f}, F-score : {:0.4f} ".format(
+    #         accuracy, precision,
+    #         recall, f_score))

@@ -331,16 +331,16 @@ class Solver(object):
 
         num_anomalies = sum((test_energy > thresh))
 
-        print(f'Number of anomalous days identified: {num_anomalies}')
+        
 
-        #print(test_energy)
-
-        pred = (test_energy > thresh).astype(int)
-
+        
+        
+        pred = (test_energy > thresh).astype(int) 
+        print(f'Number of anomalous days identified: {num_anomalies}/', len(pred))
         gt = test_labels.astype(int)
 
         print("pred:   ", pred.shape)
-        print("gt:     ", gt.shape)
+        
 
         # detection adjustment: please see this issue for more information https://github.com/thuml/Anomaly-Transformer/issues/14
         # anomaly_state = False
@@ -382,8 +382,8 @@ class Solver(object):
         # return accuracy, precision, recall, f_score 
 
         if 1 in pred:
-            return 1
+            return 1, test_energy
         else:
-            return 0
+            return 0, test_energy
 
 

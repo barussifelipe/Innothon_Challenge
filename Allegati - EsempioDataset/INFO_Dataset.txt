@@ -1,0 +1,83 @@
+---ENG---
+
+Let's consider a sample of 100 supplies. Supply_ID uniquely identifies each supply.
+
+The dataset consists of:
+- LABELS: Each Supply_ID is assigned a cluster based on the verification outcome:
+	- Fraud, if a deliberate alteration of the measurement was detected at the point.
+	- Anomaly, if an unintentional alteration of the measurement was detected at the point.
+	- Regular, otherwise (if no measurement alterations were detected at the point).
+
+- CUSTOMER INFORMATION: Each row contains the customer details for each Supply_ID:
+	- begin_date_ref and end_date_ref, indicating the validity period of the row. If the information is currently valid, then end_date_ref is set to 31/12/9999.
+	- supply_status, indicating the status of the supply:
+		- A: active
+		- C: terminated
+		- F: fictitious supply
+	- available_power, the available power from the contract.
+
+- CONSUMPTION*: Each row contains the quarter-hourly consumption (in kWh) for the individual Supply_ID:
+	- val: the consumption value in kWh.
+	- meas_ym: the year and month of consumption.
+	- meas_dd: the day of consumption.
+	- id_quartodora: the quarter-hour time slot ID for the consumption, a number from 1 to 96, where 1 represents 00:00, 2 represents 00:15, ..., 96 represents 23:45
+	- magnitude: indicates whether it is a withdrawal (A1) or an injection (A2).
+
+- WORKS: This file contains the works carried out on the supply points, with each row corresponding to a specific work:
+	- woa_activity_type: type of work performed.
+	- woa_activity_subtype (if available): further specification of the type of work carried out.
+	- woe_dt_execution: the execution date of the work.
+
+- INTERRUPTIONS: Each row contains information regarding a specific interruption that occurred on a Supply_ID. The file includes:
+	- tipologia_interruzione: indicates whether the interruption was: Planned (P), Accidental with localization (C), Accidental without localization (A)
+	- durata netta: the net duration of the interruption in seconds.
+	- start_date: the start date of the interruption.
+	- end_date: the end date of the interruption.
+
+- STATUS WORDS: Status words are alarms that are triggered on the meter. Each row in the file contains:
+	- Supply_ID
+	- mesa_ts: the timestamp when the meter reading was taken.
+	- ListaParola: the list of all alarms that were active at the time of reading.
+
+* Note: All consumption data shown are the same as those recorded in the system at the time the verification was issued.
+
+
+
+---ITA---
+
+Consideriamo un campione di 100 forniture. Supply_ID identifica in modo univoco ciascuna fornitura.
+
+Il dataset è formato da:
+- LABELS: a ogni Supply_ID è associato il cluster in base all'esito della verifica: 
+			- Frode, se sul punto è stata riscontrata un'alterazione volontaria della misura
+			- Anomalia, se sul punto è stata riscontratata un'alterazione involontaria della misura
+			- Regolare, altrimenti (sul punto non sono state riscontrate alterazioni della misura)
+- ANAGRAFICA: su ogni riga troviamo le informazioni anagrafiche di ogni Supply_ID:
+		- begin_date_ref e end_date_ref che indicano il periodo di validità della riga. Nel caso le informazioni siano quelle valide attualmente, troviamo end_date_ref = 31/12/9999
+		- supply_status indica lo stato della fornitura:
+				- A attivo
+				- C cessato
+				- F fornitura fittizia
+		- available_power potenza disponibile da contratto
+- CONSUMI*: su ogni riga troviamo il consumo prelevato quartorario in kWh del singolo Supply_ID:
+		- val è il valore del consumo prelevato in kWh
+		- meas_ym è l'annomese del consumo
+		- meas_dd è il giorno del consumo
+		- id_quartodora è l'id dell'orario del quarto d'ora del consumo: è un numero da 1 a 96, dove 1 indica 00:00, 2 indica 00:15 e così via fino al 96 che indica 23:45
+		- magnitude indica se si tratta di un prelievo (A1) o di un'immissione (A2)
+- LAVORI: il file contiene i lavori eseguiti sui punti, ogni riga corrsiponde a un lavoro:
+		- woa_activity_type indica il tipo di lavoro
+		- woa_activity_subtype, se presente, è un ulteriore specifica del tipo di lavoro eseguito
+		- woe_dt_execution è la data di esecuzione del lavoro
+- INTERRUZIONI: ogni riga contiene informazioni inerenti la specifica interruzione che c'è stata sul Supply_ID. Il file contiene:
+		- tipologia_interruzione indica se l'interruzione è programmata (P), accidentale con localizzazione (C) o accidentale senza localizzazione (A)
+		- durata netta è la durata netta in secondi dell'interruzione
+		- start_date è la data di inizio dell'interruzione
+		- end_date è la data di fine dell'interruzione
+- PAROLE DI STATO: le parole di stato sono degli allarmi che si accendono sul contatore. Ogni riga del file contiene:
+		- Supply_ID
+		- mesa_ts che è il timestamp del momento in cui è stato letto il contatore
+		- ListaParola che è la lista di tutte gli allarmi che erano accesi nel momento della lettura
+		
+		
+*nota: tutti i consumi mostrati sono gli stessi che c'erano a sistema quando è stata emessa la verifica

@@ -1,0 +1,42 @@
+Anomaly Transformer
+
+The core idea behind the Anomaly transformer is the association discrepancy criteria, used to determined whether a data point is considered anomalous or not.
+
+Series association: As the transformer does naturally, this is the original attention mecanism. Here, the distribition of connections/realtions
+    between the current data point and previous data points is learned. Naturally a normal point will have complex and diffuse realations
+    with other points (local and distant but relevant). For anomalous points this association will be mainly local, meaning there are connections/relations
+    with nearby data points, but not so many with those distant.
+
+Prior association: This is the newly introduced part. It assumes that any time series point, normal or anomalous, will have some degree of association with its immediate neighbors following some kind of gaussian distribution.
+    Given this assumption, the model learns how spread out the local associations (gaussian) should be with a scalable learnable parameter (σ).
+    For a more stable sequence, this parameter will end up smaller meaning immeadiate neighbors are more relevant (less wide gaussian). For a more volatile sequence this parameter
+    will end up larger, meaning a wider window should be considered (wider gaussian)
+    So in the end the prior association learns the best parameter (σ) that defines the gaussian that describes the local relation pattern distribution.
+    The Prior association will always be local as a gaussian naturally is.
+
+Association discrepancy: Now, we compare both computed associations to determine the association discrepancy and finally determine an Anomaly score.
+    So far the series association, what the model learned from the all around associations of a data point, and the Prior association, what the model 
+    learned to expect as a local association spread for that point, has been computed. The comparison made is a difference between the distributions.
+    For a normal point, it will have a localized prior association (as naturally expected) and a diffuse series association, resulting in a high discrepancy.
+    For an anomolous point, it will also have a localized prior association, but also a very localized series association, resulting in a low discrepancy.
+
+    The intuiton behind is that if a point`s discrepancy is high, given that the prior association is naturally local, this means the series association is more spread-out (diffuse),
+    meaning this point created more distanced (global) relations. Finally, this means the point`s relations differ from the purely local prior association.
+    Now for the case the discrepancy is low, this means that the point failed to create farther associations and is more similar to the prior association.
+
+
+In the end we want to find out if the associations pattern is mainly local (anomalous) or wider spread (normal). 
+    This is done by comparing the actual pattern distribtion to the expected local pattern distribution. If they are similar this
+    means the current data point has only meaningful connections with its nearby neighbors, no long distant relevant connections were created.
+    If they differ, this means that current point contains more associations with long distance points, making it distant from the expected local distribution. This is to be expected by normal points.
+
+
+Mini-max
+
+Maximizing the discrepancy means minimizing the prior association, which could lead to trivial solutions like an extremely narrow gaussian (thus yielding the maximum possible discrepancy from the prio association side)
+
+Minimize: Prior association is made as close as possible to the series association (minimizing the association discrepancy)
+
+Maximize: The series association is made as far as possible from the prior association (maximizing the association discrepancy)
+
+This strategy solves the sharp gaussian problem and also creates an adaptive prior association and sharpens the distinction between normal and anomaly
