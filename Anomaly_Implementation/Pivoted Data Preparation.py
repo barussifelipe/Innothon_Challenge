@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd 
 
+#Raw quarter hour consumption data
+
 # Supply_ID	meas_ym	meas_dd	id	val	magnitude
 # SUPPLY001	202210	20	1	0	A1
 # SUPPLY001	202210	20	2	0	A1

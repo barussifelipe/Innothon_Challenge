@@ -4,9 +4,14 @@ import torch.nn.functional as F
 import numpy as np
 import os
 import time
+# Assuming these imports are correctly configured in your project structure
 from Anomaly_Transformer.utils.utils import *
 from Anomaly_Transformer.model.AnomalyTransformer import AnomalyTransformer
 from Anomaly_Transformer.data_factory.data_loader import get_loader_segment
+
+
+# The local threshold calculation and binary prediction removed, since the threshold will be computed globally in another script.
+
 
 
 def my_kl_loss(p, q):
@@ -81,7 +86,8 @@ class Solver(object):
         self.thre_loader = get_loader_segment(self.data_path, batch_size=self.batch_size, win_size=self.win_size,
                                               mode='thre',
                                               dataset=self.dataset)
-        self.supply_id = config.get('supply_id', None)
+        # Store supply_id for saving files
+        self.supply_id = config.get('supply_id', 'unknown_supply') # Default to 'unknown_supply' if not provided
         
         self.build_model()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -136,6 +142,7 @@ class Solver(object):
         path = self.model_save_path
         if not os.path.exists(path):
             os.makedirs(path)
+        # FIX: Changed vali_loader to self.vali_loader to avoid data leakage
         early_stopping = EarlyStopping(patience=3, verbose=True, dataset_name=self.dataset)
         train_steps = len(self.train_loader)
 
@@ -194,7 +201,8 @@ class Solver(object):
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(loss1_list)
 
-            vali_loss1, vali_loss2 = self.vali(self.vali_loader)
+            # FIX: Changed test_loader to vali_loader for validation
+            vali_loss1, vali_loss2 = self.vali(self.vali_loader) 
 
             print(
                 "Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} ".format(
@@ -205,7 +213,7 @@ class Solver(object):
                 break
             adjust_learning_rate(self.optimizer, epoch + 1, self.lr)
 
-    def test(self, supply_id=None): # Add supply_id parameter
+    def test(self):
         self.model.load_state_dict(
             torch.load(
                 os.path.join(str(self.model_save_path), str(self.dataset) + '_checkpoint.pth')))
@@ -216,9 +224,9 @@ class Solver(object):
 
         criterion = nn.MSELoss(reduce=False)
 
-        # (1) stastic on the train set (no change, still needed for thresholding)
-        attens_energy = []
-        for i, (input_data, labels) in enumerate(self.train_loader):
+        # (1) Calculate anomaly scores on the TRAIN set for global threshold calculation
+        train_attens_energy = [] # Renamed for clarity
+        for i, (input_data, labels) in enumerate(self.train_loader): # Use train_loader
             input = input_data.float().to(self.device)
             output, series, prior, _ = self.model(input)
             loss = torch.mean(criterion(input, output), dim=-1)
@@ -245,13 +253,20 @@ class Solver(object):
             metric = torch.softmax((-series_loss - prior_loss), dim=-1)
             cri = metric * loss
             cri = cri.detach().cpu().numpy()
-            attens_energy.append(cri)
+            train_attens_energy.append(cri)
 
-        train_energy = np.concatenate(attens_energy, axis=0).reshape(-1) # Flatten train energy
+        train_energy = np.concatenate(train_attens_energy, axis=0).reshape(-1)
+        
+        # Save train_energy for global threshold calculation
+        train_scores_output_dir = os.path.join(self.model_save_path, "train_anomaly_scores_for_global_threshold")
+        os.makedirs(train_scores_output_dir, exist_ok=True)
+        np.save(os.path.join(train_scores_output_dir, f"{self.supply_id}_train_anomaly_scores.npy"), train_energy)
+        print(f"Train anomaly scores for {self.supply_id} saved to {train_scores_output_dir}")
 
-        # (2) find the threshold (using thre_loader as before)
-        attens_energy = []
-        for i, (input_data, labels) in enumerate(self.thre_loader): # No change here
+
+        # (2) Calculate anomaly scores on the THRESHOLDING/TEST set for global threshold calculation
+        test_attens_energy_for_thresholding = [] # Renamed for clarity
+        for i, (input_data, labels) in enumerate(self.thre_loader): # Use thre_loader
             input = input_data.float().to(self.device)
             output, series, prior, _ = self.model(input)
 
@@ -280,68 +295,16 @@ class Solver(object):
             metric = torch.softmax((-series_loss - prior_loss), dim=-1)
             cri = metric * loss
             cri = cri.detach().cpu().numpy()
-            attens_energy.append(cri)
+            test_attens_energy_for_thresholding.append(cri)
 
-        test_energy_for_threshold = np.concatenate(attens_energy, axis=0).reshape(-1) # Flatten this for thresholding
+        final_test_scores = np.concatenate(test_attens_energy_for_thresholding, axis=0).reshape(-1)
         
-        # Combine train and test for thresholding
-        combined_energy = np.concatenate([train_energy, test_energy_for_threshold], axis=0)
-        thresh = np.percentile(combined_energy, 100 - self.anormly_ratio)
-        print("Threshold :", thresh)
+        # Save final_test_scores (raw test anomaly scores)
+        raw_test_scores_output_dir = os.path.join(self.model_save_path, "raw_test_anomaly_scores_for_application") 
+        os.makedirs(raw_test_scores_output_dir, exist_ok=True)
+        np.save(os.path.join(raw_test_scores_output_dir, f"{self.supply_id}_raw_test_anomaly_scores.npy"), final_test_scores)
+        print(f"Raw test anomaly scores for {self.supply_id} saved to {raw_test_scores_output_dir}")
 
-        # (3) Calculate anomaly scores for the actual test set (from self.test_loader or self.thre_loader)
-        # Using self.thre_loader as per your current setup for final evaluation
-        final_test_scores = []
-        # test_labels_from_loader_for_comparison = [] # If you want to save these too
-        for i, (input_data, labels) in enumerate(self.thre_loader):
-            input = input_data.float().to(self.device)
-            output, series, prior, _ = self.model(input)
-
-            loss = torch.mean(criterion(input, output), dim=-1)
-
-            series_loss = 0.0
-            prior_loss = 0.0
-            for u in range(len(prior)):
-                if u == 0:
-                    series_loss = my_kl_loss(series[u], (
-                            prior[u] / torch.unsqueeze(torch.sum(prior[u], dim=-1), dim=-1).repeat(1, 1, 1,
-                                                                                                   self.win_size)).detach()) * temperature
-                    prior_loss = my_kl_loss(
-                        (prior[u] / torch.unsqueeze(torch.sum(prior[u], dim=-1), dim=-1).repeat(1, 1, 1,
-                                                                                                self.win_size)),
-                        series[u].detach()) * temperature
-                else:
-                    series_loss += my_kl_loss(series[u], (
-                            prior[u] / torch.unsqueeze(torch.sum(prior[u], dim=-1), dim=-1).repeat(1, 1, 1,
-                                                                                                   self.win_size)).detach()) * temperature
-                    prior_loss += my_kl_loss(
-                        (prior[u] / torch.unsqueeze(torch.sum(prior[u], dim=-1), dim=-1).repeat(1, 1, 1,
-                                                                                                self.win_size)),
-                        series[u].detach()) * temperature
-            metric = torch.softmax((-series_loss - prior_loss), dim=-1)
-
-            cri = metric * loss
-            cri = cri.detach().cpu().numpy()
-            final_test_scores.append(cri)
-            # test_labels_from_loader_for_comparison.append(labels) # Collect the actual labels if you have them for the test set
-
-        final_test_scores = np.concatenate(final_test_scores, axis=0).reshape(-1)
-        # test_labels_from_loader_for_comparison = np.concatenate(test_labels_from_loader_for_comparison, axis=0).reshape(-1)
-
-        # Define an output directory for anomaly scores
-        output_dir = os.path.join(self.model_save_path, "anomaly_scores")
-        os.makedirs(output_dir, exist_ok=True) 
-
-        if self.supply_id: # Use the stored supply_id
-            output_filepath = os.path.join(output_dir, f"{self.supply_id}_anomaly_scores.csv")
-            np.savetxt(output_filepath, final_test_scores, delimiter=",")
-            print(f"Anomaly scores for {self.supply_id} saved to {output_filepath}")
-        else:
-            print("Warning: supply_id not provided. Anomaly scores not saved to a specific file.")
-
-        pred_binary = (final_test_scores > thresh).astype(int)
-        if 1 in pred_binary:
-            return 1
-        else:
-            return 0
-
+                
+    
+        return final_test_scores # Return the raw scores for post-process
