@@ -57,3 +57,9 @@ Study_datasets/Consumption/Basic_model_dataset_quarterhouravg_1825days_selected_
 models/Tests/Data/100_days.csv
 models/Tests/Data/1825_days.csv
 models/Tests/Data/10_days.csv
+Study_datasets/EsempioDataset - ANAGRAFICA.csv
+Study_datasets/EsempioDataset - CONSUMI.csv
+Study_datasets/EsempioDataset - LABELS.csv
+Study_datasets/Costumer_State/EsempioDataset - PAROLE DI STATO.csv
+Study_datasets/Interruptions/EsempioDataset - INTERRUZIONI.csv
+Study_datasets/Work/EsempioDataset - LAVORI.csv
